@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'novels',
     "cloudinary_storage",
 "cloudinary",
+
 ]
 
 
@@ -145,6 +146,9 @@ STORAGES = {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
+CLOUDINARY_STORAGE = {
+    "CLOUD_NAME": "qg4tfzur",
+}   
 
 LOGIN_URL = '/dang-nhap/'
 
