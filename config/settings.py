@@ -44,7 +44,11 @@ INSTALLED_APPS = [
 "cloudinary",
 
 ]
-
+CLOUDINARY_STORAGE = {
+    "CLOUD_NAME": "qg4tfzur",
+    "API_KEY": "833997231285473",
+    "API_SECRET": "ZofWtfywoNxjn_Tmd8MnDEZHFEk",
+}
 
 # =========================
 # MIDDLEWARE
@@ -146,9 +150,7 @@ STORAGES = {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
-CLOUDINARY_STORAGE = {
-    "CLOUD_NAME": "qg4tfzur",
-}   
+
 
 LOGIN_URL = '/dang-nhap/'
 
