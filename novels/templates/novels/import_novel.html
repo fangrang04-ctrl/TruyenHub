@@ -402,6 +402,9 @@
 
         <div class="import-box">
 
+            <!-- FORM NÀY GIỮ NGUYÊN -->
+            <!-- Dùng cho kiểm tra truyện / lưu truyện -->
+
             <form method="post">
                 {% csrf_token %}
 
@@ -541,6 +544,10 @@
 
                 <div class="chapter-actions">
 
+                    <!-- ========================================== -->
+                    <!-- LẤY DANH SÁCH CHƯƠNG -->
+                    <!-- ========================================== -->
+
                     <div class="chapter-action">
 
                         <h3>
@@ -551,7 +558,10 @@
                             Dò toàn bộ chương hiện có trên nguồn.
                         </p>
 
-                        <form method="post">
+                        <form
+                            method="post"
+                            action="{% url 'start_import' %}"
+                        >
                             {% csrf_token %}
 
                             <input
@@ -568,9 +578,14 @@
                             >
                                 Lấy danh sách chương
                             </button>
+
                         </form>
 
                     </div>
+
+                    <!-- ========================================== -->
+                    <!-- IMPORT MỘT CHƯƠNG -->
+                    <!-- ========================================== -->
 
                     <div class="chapter-action">
 
@@ -582,7 +597,10 @@
                             Nhập số chương muốn lấy.
                         </p>
 
-                        <form method="post">
+                        <form
+                            method="post"
+                            action="{% url 'start_import' %}"
+                        >
                             {% csrf_token %}
 
                             <input
@@ -612,9 +630,14 @@
                                 </button>
 
                             </div>
+
                         </form>
 
                     </div>
+
+                    <!-- ========================================== -->
+                    <!-- IMPORT KHOẢNG CHƯƠNG -->
+                    <!-- ========================================== -->
 
                     <div class="chapter-action">
 
@@ -626,7 +649,10 @@
                             Chọn từ chương nào đến chương nào.
                         </p>
 
-                        <form method="post">
+                        <form
+                            method="post"
+                            action="{% url 'start_import' %}"
+                        >
                             {% csrf_token %}
 
                             <input
@@ -669,9 +695,14 @@
                                 </button>
 
                             </div>
+
                         </form>
 
                     </div>
+
+                    <!-- ========================================== -->
+                    <!-- IMPORT TOÀN BỘ -->
+                    <!-- ========================================== -->
 
                     <div class="chapter-action">
 
@@ -683,7 +714,10 @@
                             Lấy toàn bộ chương mà nguồn đang có.
                         </p>
 
-                        <form method="post">
+                        <form
+                            method="post"
+                            action="{% url 'start_import' %}"
+                        >
                             {% csrf_token %}
 
                             <input
@@ -816,42 +850,62 @@
         }
 
         function renderJob(data) {
-            const value = Math.max(0, Math.min(100, Number(data.progress) || 0));
+            const value = Math.max(
+                0,
+                Math.min(100, Number(data.progress) || 0)
+            );
+
             const current = Number(data.current) || 0;
             const total = Number(data.total) || 0;
 
             fill.style.width = value + "%";
             percent.textContent = value + "%";
-            message.textContent = data.message || "Đang import...";
+
+            message.textContent =
+                data.message || "Đang import...";
 
             if (total > 0) {
-                detail.textContent = "Chương " + current + " / " + total;
+                detail.textContent =
+                    "Chương " + current + " / " + total;
             } else {
                 detail.textContent = "";
             }
 
             if (data.status === "error") {
+
                 errorBox.hidden = false;
-                errorBox.textContent = data.error || "Import thất bại.";
+
+                errorBox.textContent =
+                    data.error || "Import thất bại.";
+
                 stopPolling();
+
                 return;
             }
 
             if (data.status === "completed") {
+
                 fill.style.width = "100%";
                 percent.textContent = "100%";
+
+                message.textContent =
+                    data.message || "Import hoàn tất.";
+
                 stopPolling();
             }
         }
 
         async function poll() {
+
             if (stopped) {
                 return;
             }
 
             try {
+
                 const response = await fetch(
-                    "{% url 'import_status' %}?job_id=" + encodeURIComponent(jobId),
+                    "{% url 'import_status' %}?job_id=" +
+                    encodeURIComponent(jobId),
                     {
                         method: "GET",
                         cache: "no-store",
@@ -864,24 +918,43 @@
                 const data = await response.json();
 
                 if (!response.ok || !data.ok) {
-                    throw new Error(data.error || "Không đọc được tiến trình import.");
+
+                    throw new Error(
+                        data.error ||
+                        "Không đọc được tiến trình import."
+                    );
                 }
 
                 renderJob(data);
 
                 if (!stopped) {
-                    timer = setTimeout(poll, 1000);
+
+                    timer = setTimeout(
+                        poll,
+                        1000
+                    );
                 }
+
             } catch (error) {
-                message.textContent = "Đang chờ backend phản hồi...";
-                detail.textContent = error.message || "Lỗi kết nối.";
+
+                message.textContent =
+                    "Đang chờ backend phản hồi...";
+
+                detail.textContent =
+                    error.message ||
+                    "Lỗi kết nối.";
 
                 if (!stopped) {
-                    timer = setTimeout(poll, 2000);
+
+                    timer = setTimeout(
+                        poll,
+                        2000
+                    );
                 }
             }
         }
 
         poll();
+
     })();
 </script>
