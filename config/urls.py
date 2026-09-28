@@ -1,9 +1,8 @@
 from django.contrib import admin
 from django.urls import path
-from django.conf import settings
-from django.conf.urls.static import static
 
 from novels.import_views import (
+    import_novel,
     start_import,
     import_status,
 )
@@ -24,46 +23,39 @@ from novels.views import (
     logout_view,
     toggle_follow,
     followed_novels,
-    import_novel,
 )
 
 
 urlpatterns = [
+    # =========================
+    # ADMIN
+    # =========================
     path(
         'admin/',
         admin.site.urls
     ),
 
+    # =========================
+    # TRANG CHỦ
+    # =========================
     path(
         '',
         home,
         name='home'
     ),
 
+    # =========================
+    # TÌM KIẾM
+    # =========================
     path(
         'tim-kiem/',
         search_novels,
         name='search_novels'
     ),
 
-    path(
-        'import-truyen/bat-dau/',
-        start_import,
-        name='start_import'
-    ),
-
-    path(
-        'import-truyen/',
-        import_novel,
-        name='import_novel'
-    ),
-
-    path(
-        'import-truyen/tien-do/',
-        import_status,
-        name='import_status'
-    ),
-
+    # =========================
+    # THỂ LOẠI
+    # =========================
     path(
         'the-loai/',
         category_list,
@@ -76,6 +68,27 @@ urlpatterns = [
         name='category_detail'
     ),
 
+    # =========================
+    # TRUYỆN
+    # =========================
+    path(
+        'truyen/<int:novel_id>/',
+        novel_detail,
+        name='novel_detail'
+    ),
+
+    # =========================
+    # ĐỌC CHƯƠNG
+    # =========================
+    path(
+        'truyen/<int:novel_id>/chuong/<int:chapter_number>/',
+        chapter_detail,
+        name='chapter_detail'
+    ),
+
+    # =========================
+    # DANH SÁCH TRUYỆN
+    # =========================
     path(
         'truyen-moi/',
         new_novels,
@@ -83,11 +96,14 @@ urlpatterns = [
     ),
 
     path(
-        'truyen-hoan-thanh/',
+        'truyen-hoan/',
         completed_novels,
         name='completed_novels'
     ),
 
+    # =========================
+    # TÀI KHOẢN
+    # =========================
     path(
         'dang-nhap/',
         login_view,
@@ -107,7 +123,7 @@ urlpatterns = [
     ),
 
     path(
-        'tai-khoan/doi-mat-khau/',
+        'doi-mat-khau/',
         password_change_view,
         name='password_change'
     ),
@@ -118,12 +134,9 @@ urlpatterns = [
         name='logout'
     ),
 
-    path(
-        'truyen-dang-theo-doi/',
-        followed_novels,
-        name='followed_novels'
-    ),
-
+    # =========================
+    # THEO DÕI TRUYỆN
+    # =========================
     path(
         'truyen/<int:novel_id>/theo-doi/',
         toggle_follow,
@@ -131,21 +144,38 @@ urlpatterns = [
     ),
 
     path(
-        'truyen/<int:novel_id>/',
-        novel_detail,
-        name='novel_detail'
+        'truyen-theo-doi/',
+        followed_novels,
+        name='followed_novels'
     ),
 
+    # =========================
+    # IMPORT TRUYỆN
+    # =========================
+    #
+    # QUAN TRỌNG:
+    # import_novel ở đây lấy từ
+    # novels.import_views
+    #
+    # Không lấy import_novel từ novels.views
+    #
     path(
-        'truyen/<int:novel_id>/chuong/<int:chapter_number>/',
-        chapter_detail,
-        name='chapter_detail'
+        'import-truyen/',
+        import_novel,
+        name='import_novel'
+    ),
+
+    # Bắt đầu job import nền
+    path(
+        'import-truyen/bat-dau/',
+        start_import,
+        name='start_import'
+    ),
+
+    # Kiểm tra tiến độ import
+    path(
+        'import-truyen/tien-do/',
+        import_status,
+        name='import_status'
     ),
 ]
-
-
-if settings.DEBUG:
-    urlpatterns += static(
-        settings.MEDIA_URL,
-        document_root=settings.MEDIA_ROOT
-    )
