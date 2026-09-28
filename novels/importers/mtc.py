@@ -27,9 +27,9 @@ def clean_text(value):
         return ""
 
     value = html.unescape(str(value))
-    value = value.replace("\\\n", "\n")
-    value = value.replace("\\\r", "")
-    value = value.replace("\\\t", " ")
+    value = value.replace("\\n", "\n")
+    value = value.replace("\\r", "")
+    value = value.replace("\\t", " ")
     value = value.replace('\\"', '"')
     value = value.replace("\\/", "/")
 
@@ -53,16 +53,10 @@ def normalize_url(url, source_url=None):
         return "https:" + url
 
     if url.startswith("/"):
-        return urljoin(
-            source_url or "https://metruyenchu.co",
-            url,
-        )
+        return urljoin(source_url or "https://metruyenchu.co", url)
 
     if not url.startswith(("http://", "https://")):
-        return urljoin(
-            source_url or "https://metruyenchu.co/",
-            url,
-        )
+        return urljoin(source_url or "https://metruyenchu.co/", url)
 
     return url
 
@@ -73,26 +67,18 @@ def fetch_html_requests(url):
         headers=HEADERS,
         timeout=30,
     )
-
     response.raise_for_status()
-
-    response.encoding = (
-        response.apparent_encoding
-        or response.encoding
-    )
-
+    response.encoding = response.apparent_encoding or response.encoding
     return response.text
 
 
 class MTCBrowserSession:
-
     def __init__(self):
         self.playwright = None
         self.browser = None
         self.context = None
 
     def start(self):
-
         if self.browser is not None:
             return
 
@@ -103,31 +89,10 @@ class MTCBrowserSession:
                 channel="chrome",
                 headless=True,
             )
-
-            print("[MTC] Đã mở Chrome")
-
-        except Exception as chrome_error:
-
-            print(
-                f"[MTC] Không mở được Chrome channel: {chrome_error}"
+        except Exception:
+            self.browser = self.playwright.chromium.launch(
+                headless=True,
             )
-
-            try:
-                self.browser = self.playwright.chromium.launch(
-                    headless=True,
-                )
-
-                print(
-                    "[MTC] Đã mở Chromium của Playwright"
-                )
-
-            except Exception as chromium_error:
-
-                print(
-                    f"[MTC] Không mở được Chromium: {chromium_error}"
-                )
-
-                raise
 
         self.context = self.browser.new_context(
             user_agent=HEADERS["User-Agent"],
@@ -139,14 +104,11 @@ class MTCBrowserSession:
         )
 
     def new_page(self):
-
         if self.context is None:
             self.start()
-
         return self.context.new_page()
 
     def close(self):
-
         try:
             if self.context is not None:
                 self.context.close()
@@ -170,274 +132,251 @@ class MTCBrowserSession:
         self.playwright = None
 
 
+def _chapter_link_count(page):
+    try:
+        return page.locator(
+            "a[href*='chuong'], "
+            "[data-chapter], "
+            "[data-chapter-url], "
+            "[data-href*='chuong'], "
+            "[data-url*='chuong']"
+        ).count()
+    except Exception:
+        return 0
+
+
+def _find_show_all(page):
+    """Find the MTC 'Xem tất cả' control and return its href when available."""
+    try:
+        result = page.evaluate(
+            """
+            () => {
+                const normalize = value =>
+                    (value || '').replace(/\\s+/g, ' ').trim().toLowerCase();
+
+                const nodes = Array.from(document.querySelectorAll('a,button,[role="button"],*'));
+
+                for (const node of nodes) {
+                    const text = normalize(node.innerText || node.textContent);
+                    if (text !== 'xem tất cả') continue;
+
+                    const anchor = node.closest('a');
+                    if (anchor && anchor.href) {
+                        return {
+                            found: true,
+                            href: anchor.href,
+                            tag: 'a',
+                        };
+                    }
+
+                    return {
+                        found: true,
+                        href: '',
+                        tag: node.tagName.toLowerCase(),
+                    };
+                }
+
+                return { found: false, href: '', tag: '' };
+            }
+            """
+        )
+        return result or {"found": False, "href": "", "tag": ""}
+    except Exception:
+        return {"found": False, "href": "", "tag": ""}
+
+
 def click_show_all(page):
+    """Open the complete MTC chapter list.
 
-    selectors = [
-        "text=Xem tất cả",
-        "button:has-text('Xem tất cả')",
-        "a:has-text('Xem tất cả')",
-        "[role='button']:has-text('Xem tất cả')",
-    ]
+    MTC can expose 'Xem tất cả' either as a normal link or as a JS button.
+    The old importer only clicked a visible text locator, which is fragile on
+    a headless Render browser. This version first resolves a real href and
+    navigates to it, then falls back to several click strategies.
+    """
+    before = _chapter_link_count(page)
 
-    clicked = False
+    # 1. If 'Xem tất cả' is actually an <a>, go to its destination directly.
+    control = _find_show_all(page)
+    href = normalize_url(control.get("href"), page.url) if control.get("href") else ""
 
-    for selector in selectors:
-
+    if href and href != page.url:
         try:
-
-            locator = page.locator(selector)
-
-            count = locator.count()
-
-            for index in range(count):
-
-                item = locator.nth(index)
-
-                try:
-
-                    if item.is_visible():
-
-                        print(
-                            f"[MTC] Tìm thấy nút Xem tất cả bằng: {selector}"
-                        )
-
-                        item.click(timeout=5000)
-
-                        clicked = True
-
-                        print(
-                            "[MTC] Đã click Xem tất cả"
-                        )
-
-                        break
-
-                except Exception:
-                    continue
-
-            if clicked:
-                break
-
+            page.goto(
+                href,
+                wait_until="domcontentloaded",
+                timeout=60000,
+            )
+            try:
+                page.wait_for_load_state(
+                    "networkidle",
+                    timeout=20000,
+                )
+            except PlaywrightTimeoutError:
+                pass
+            page.wait_for_timeout(1500)
         except Exception:
-            continue
+            pass
 
-    if not clicked:
+    # 2. If it is a JS control, try robust locator clicks.
+    if _chapter_link_count(page) <= before:
+        selectors = [
+            "a:has-text('Xem tất cả')",
+            "button:has-text('Xem tất cả')",
+            "[role='button']:has-text('Xem tất cả')",
+            "text=Xem tất cả",
+        ]
 
+        for selector in selectors:
+            try:
+                locator = page.locator(selector)
+                count = locator.count()
+                for index in range(count):
+                    item = locator.nth(index)
+                    try:
+                        if item.is_visible():
+                            item.scroll_into_view_if_needed(timeout=3000)
+                            item.click(timeout=5000, force=True)
+                            page.wait_for_timeout(1200)
+                            break
+                    except Exception:
+                        continue
+                if _chapter_link_count(page) > before:
+                    break
+            except Exception:
+                continue
+
+    # 3. JS fallback for controls that are covered by another element.
+    if _chapter_link_count(page) <= before:
         try:
-
-            clicked = page.evaluate(
+            page.evaluate(
                 """
                 () => {
-                    const elements = Array.from(
-                        document.querySelectorAll('*')
+                    const normalize = value =>
+                        (value || '').replace(/\\s+/g, ' ').trim().toLowerCase();
+                    const elements = Array.from(document.querySelectorAll('*'));
+                    const target = elements.find(el =>
+                        normalize(el.innerText || el.textContent) === 'xem tất cả'
                     );
-
-                    const target = elements.find(el => {
-                        const text = (el.innerText || '').trim();
-                        return text === 'Xem tất cả';
-                    });
-
                     if (!target) return false;
-
+                    target.scrollIntoView({block: 'center'});
+                    target.dispatchEvent(new MouseEvent('mousedown', {bubbles: true}));
+                    target.dispatchEvent(new MouseEvent('mouseup', {bubbles: true}));
                     target.click();
-
                     return true;
                 }
                 """
             )
-
-            if clicked:
-                print(
-                    "[MTC] Đã click Xem tất cả bằng JavaScript"
-                )
-
-        except Exception as error:
-
-            print(
-                f"[MTC] JavaScript click lỗi: {error}"
-            )
-
-            clicked = False
-
-    if not clicked:
-
-        print(
-            "[MTC] KHÔNG tìm thấy nút Xem tất cả"
-        )
-
-        return False
-
-    page.wait_for_timeout(1200)
-
-    last_count = -1
-    stable_rounds = 0
-
-    for _ in range(20):
-
-        try:
-
-            count = page.locator(
-                "a[href*='chuong'], "
-                "a[href*='chuong-'], "
-                "a[href*='chuong/'], "
-                "[data-chapter], "
-                "[data-chapter-url]"
-            ).count()
-
-        except Exception:
-
-            count = 0
-
-        print(
-            f"[MTC] Số link chương hiện tại: {count}"
-        )
-
-        if count == last_count:
-
-            stable_rounds += 1
-
-        else:
-
-            stable_rounds = 0
-            last_count = count
-
-        if stable_rounds >= 3:
-            break
-
-        try:
-
-            page.evaluate(
-                """
-                () => {
-                    window.scrollTo(
-                        0,
-                        document.body.scrollHeight
-                    );
-                }
-                """
-            )
-
+            page.wait_for_timeout(1500)
         except Exception:
             pass
 
-        page.wait_for_timeout(700)
+    # 4. Give the page time to finish inserting chapters. Also scroll both
+    # the window and scrollable containers because some versions lazy-load
+    # the chapter list inside its own div.
+    last_count = _chapter_link_count(page)
+    stable_rounds = 0
 
-    page.wait_for_timeout(1200)
+    for _ in range(35):
+        current = _chapter_link_count(page)
 
-    return True
+        if current == last_count:
+            stable_rounds += 1
+        else:
+            stable_rounds = 0
+            last_count = current
+
+        try:
+            page.evaluate(
+                """
+                () => {
+                    window.scrollTo(0, document.body.scrollHeight);
+                    for (const el of document.querySelectorAll('*')) {
+                        const style = getComputedStyle(el);
+                        if ((style.overflowY === 'auto' || style.overflowY === 'scroll') &&
+                            el.scrollHeight > el.clientHeight) {
+                            el.scrollTop = el.scrollHeight;
+                        }
+                    }
+                }
+                """
+            )
+        except Exception:
+            pass
+
+        page.wait_for_timeout(500)
+
+        if stable_rounds >= 5:
+            break
+
+    page.wait_for_timeout(1500)
+    return _chapter_link_count(page) > before or control.get("found", False)
 
 
 def fetch_rendered_html(url, browser_session=None):
-
     own_session = browser_session is None
-
-    session = (
-        browser_session
-        or MTCBrowserSession()
-    )
+    session = browser_session or MTCBrowserSession()
 
     try:
-
         if own_session:
             session.start()
 
         page = session.new_page()
 
         try:
-
-            print(
-                f"[MTC] Mở trang: {url}"
-            )
-
             page.goto(
                 url,
                 wait_until="domcontentloaded",
                 timeout=60000,
             )
 
-            print(
-                "[MTC] DOMContentLoaded"
-            )
-
             try:
-
                 page.wait_for_load_state(
                     "networkidle",
                     timeout=20000,
                 )
-
             except PlaywrightTimeoutError:
-
-                print(
-                    "[MTC] networkidle timeout - tiếp tục"
-                )
+                pass
 
             page.wait_for_timeout(1500)
-
             click_show_all(page)
 
             try:
-
                 page.wait_for_load_state(
                     "networkidle",
                     timeout=10000,
                 )
-
             except PlaywrightTimeoutError:
-
                 pass
 
             page.wait_for_timeout(1000)
-
-            content = page.content()
-
-            print(
-                f"[MTC] HTML sau render: {len(content)} bytes"
-            )
-
-            return content
-
+            return page.content()
         finally:
-
             page.close()
-
     finally:
-
         if own_session:
             session.close()
 
 
 def fetch_html(url, browser_session=None):
-
+    # Prefer the browser-rendered DOM. The raw HTTP response from MTC only
+    # contains the newest few chapters before the JS chapter list is opened.
+    # The previous 10,000-character check could silently throw away a valid
+    # rendered page and fall back to that incomplete HTTP response.
     try:
-
         rendered = fetch_rendered_html(
             url,
             browser_session=browser_session,
         )
 
-        if rendered and len(rendered) > 10000:
-
-            print(
-                "[MTC] Sử dụng HTML Playwright"
-            )
-
+        if rendered and len(rendered) > 2000:
             return rendered
-
-    except Exception as error:
-
-        print(
-            f"[MTC] Playwright lỗi: {error}"
-        )
-
-    print(
-        "[MTC] FALLBACK sang requests"
-    )
+    except Exception:
+        pass
 
     return fetch_html_requests(url)
 
 
 def extract_chapter_number(value):
-
     if value is None:
         return None
 
@@ -450,7 +389,6 @@ def extract_chapter_number(value):
     ]
 
     for pattern in patterns:
-
         match = re.search(
             pattern,
             text,
@@ -458,32 +396,21 @@ def extract_chapter_number(value):
         )
 
         if match:
-
             try:
                 return int(match.group(1))
-
             except ValueError:
                 pass
 
     return None
 
 
-def chapter_from_href(
-    href,
-    text="",
-    source_url="",
-):
-
-    href = normalize_url(
-        href,
-        source_url,
-    )
+def chapter_from_href(href, text="", source_url=""):
+    href = normalize_url(href, source_url)
 
     if not href:
         return None
 
     parsed = urlparse(href)
-
     path = parsed.path.rstrip("/")
 
     match = re.search(
@@ -493,7 +420,6 @@ def chapter_from_href(
     )
 
     if not match:
-
         match = re.search(
             r"(?:^|/)chuong[-/](\d+)(?:[-/].*)?",
             path,
@@ -516,11 +442,7 @@ def chapter_from_href(
     if not name:
         name = f"Chương {number}"
 
-    if not re.search(
-        r"(?:chương|chuong)",
-        name,
-        re.IGNORECASE,
-    ):
+    if not re.search(r"(?:chương|chuong)", name, re.IGNORECASE):
         name = f"Chương {number}: {name}"
 
     return {
@@ -532,20 +454,12 @@ def chapter_from_href(
     }
 
 
-def extract_chapters_from_links(
-    page_html,
-    source_url,
-):
-
-    soup = BeautifulSoup(
-        page_html,
-        "html.parser",
-    )
+def extract_chapters_from_links(page_html, source_url):
+    soup = BeautifulSoup(page_html, "html.parser")
 
     chapters = {}
 
     for link in soup.find_all("a"):
-
         href = (
             link.get("href")
             or link.get("data-href")
@@ -575,15 +489,8 @@ def extract_chapters_from_links(
     return chapters
 
 
-def extract_chapters_from_data_attributes(
-    page_html,
-    source_url,
-):
-
-    soup = BeautifulSoup(
-        page_html,
-        "html.parser",
-    )
+def extract_chapters_from_data_attributes(page_html, source_url):
+    soup = BeautifulSoup(page_html, "html.parser")
 
     chapters = {}
 
@@ -597,18 +504,15 @@ def extract_chapters_from_data_attributes(
     ]
 
     for element in soup.find_all(True):
-
         values = []
 
         for attribute in attributes:
-
             value = element.get(attribute)
 
             if value:
                 values.append(value)
 
         for value in values:
-
             value = str(value)
 
             if "chuong" not in value.lower():
@@ -632,50 +536,26 @@ def extract_chapters_from_data_attributes(
 
 
 def decode_embedded_text(value):
-
     if not isinstance(value, str):
         return value
 
     result = value
 
     for _ in range(8):
-
         previous = result
 
         result = html.unescape(result)
-
-        result = result.replace(
-            "\\/",
-            "/",
-        )
-
-        result = result.replace(
-            "\\u002F",
-            "/",
-        )
-
-        result = result.replace(
-            "\\u0026",
-            "&",
-        )
-
-        result = result.replace(
-            '\\"',
-            '"',
-        )
-
-        result = result.replace(
-            "\\'",
-            "'",
-        )
+        result = result.replace("\\/", "/")
+        result = result.replace("\\u002F", "/")
+        result = result.replace("\\u0026", "&")
+        result = result.replace('\\"', '"')
+        result = result.replace("\\'", "'")
 
         try:
-
             decoded = json.loads(result)
 
             if isinstance(decoded, str):
                 result = decoded
-
         except Exception:
             pass
 
@@ -685,19 +565,12 @@ def decode_embedded_text(value):
     return result
 
 
-def extract_chapters_from_embedded_data(
-    page_html,
-    source_url,
-):
-
+def extract_chapters_from_embedded_data(page_html, source_url):
     chapters = {}
 
-    decoded = decode_embedded_text(
-        page_html
-    )
+    decoded = decode_embedded_text(page_html)
 
     patterns = [
-
         re.compile(
             r'"slugId"\s*:\s*"([^"]+)"'
             r'.{0,2500}?'
@@ -706,7 +579,6 @@ def extract_chapters_from_embedded_data(
             r'"name"\s*:\s*"([^"]+)"',
             re.IGNORECASE | re.DOTALL,
         ),
-
         re.compile(
             r'"number"\s*:\s*(\d+)'
             r'.{0,2500}?'
@@ -718,9 +590,7 @@ def extract_chapters_from_embedded_data(
     ]
 
     for pattern in patterns:
-
         for match in pattern.finditer(decoded):
-
             groups = match.groups()
 
             if len(groups) != 3:
@@ -729,13 +599,10 @@ def extract_chapters_from_embedded_data(
             first, second, third = groups
 
             if first.isdigit():
-
                 number = int(first)
                 slug = second
                 name = third
-
             else:
-
                 slug = first
                 number = int(second)
                 name = third
@@ -763,9 +630,7 @@ def extract_chapters_from_embedded_data(
                 name = f"Chương {number}: {name}"
 
             chapter_url = normalize_url(
-                f"/truyen/"
-                f"{urlparse(source_url).path.strip('/').split('/')[-1]}"
-                f"/{slug}",
+                f"/truyen/{urlparse(source_url).path.strip('/').split('/')[-1]}/{slug}",
                 source_url,
             )
 
@@ -780,16 +645,10 @@ def extract_chapters_from_embedded_data(
     return chapters
 
 
-def extract_chapters_from_number_slug_pairs(
-    page_html,
-    source_url,
-):
-
+def extract_chapters_from_number_slug_pairs(page_html, source_url):
     chapters = {}
 
-    decoded = decode_embedded_text(
-        page_html
-    )
+    decoded = decode_embedded_text(page_html)
 
     number_matches = list(
         re.finditer(
@@ -800,10 +659,7 @@ def extract_chapters_from_number_slug_pairs(
     )
 
     for number_match in number_matches:
-
-        number = int(
-            number_match.group(1)
-        )
+        number = int(number_match.group(1))
 
         if number < 1 or number > 1000000:
             continue
@@ -840,11 +696,7 @@ def extract_chapters_from_number_slug_pairs(
             re.IGNORECASE,
         )
 
-        name = (
-            name_matches[-1].strip()
-            if name_matches
-            else f"Chương {number}"
-        )
+        name = name_matches[-1].strip() if name_matches else f"Chương {number}"
 
         if not re.search(
             r"(?:chương|chuong)",
@@ -853,12 +705,7 @@ def extract_chapters_from_number_slug_pairs(
         ):
             name = f"Chương {number}: {name}"
 
-        path_parts = (
-            urlparse(source_url)
-            .path
-            .strip("/")
-            .split("/")
-        )
+        path_parts = urlparse(source_url).path.strip("/").split("/")
 
         if len(path_parts) >= 2:
             novel_slug = path_parts[-1]
@@ -881,20 +728,14 @@ def extract_chapters_from_number_slug_pairs(
     return chapters
 
 
-def extract_json_chapters(
-    page_html,
-    source_url,
-):
-
+def extract_json_chapters(page_html, source_url):
     chapters = {}
 
     for extractor in (
         extract_chapters_from_embedded_data,
         extract_chapters_from_number_slug_pairs,
     ):
-
         try:
-
             found = extractor(
                 page_html,
                 source_url,
@@ -902,106 +743,50 @@ def extract_json_chapters(
 
             for number, item in found.items():
                 chapters[number] = item
-
-        except Exception as error:
-
-            print(
-                f"[MTC] JSON extractor lỗi: {error}"
-            )
-
+        except Exception:
             continue
 
     return chapters
 
 
-def fetch_mtc_chapters(
-    source_url,
-    browser_session=None,
-):
-
-    print(
-        f"[MTC] Bắt đầu lấy danh sách chương: {source_url}"
-    )
-
-    page_html = fetch_html(
-        source_url,
-        browser_session=browser_session,
-    )
-
-    print(
-        f"[MTC] HTML nhận được: {len(page_html)} bytes"
-    )
+def fetch_mtc_chapters(source_url, browser_session=None):
+    page_html = fetch_html(source_url, browser_session=browser_session)
 
     chapters = {}
 
-    link_chapters = (
-        extract_chapters_from_links(
-            page_html,
-            source_url,
-        )
+    link_chapters = extract_chapters_from_links(
+        page_html,
+        source_url,
     )
 
-    print(
-        f"[MTC] Link chapters: {len(link_chapters)}"
+    chapters.update(link_chapters)
+
+    data_attribute_chapters = extract_chapters_from_data_attributes(
+        page_html,
+        source_url,
     )
 
-    chapters.update(
-        link_chapters
-    )
+    chapters.update(data_attribute_chapters)
 
-    data_attribute_chapters = (
-        extract_chapters_from_data_attributes(
-            page_html,
-            source_url,
-        )
-    )
-
-    print(
-        "[MTC] Data attribute chapters: "
-        f"{len(data_attribute_chapters)}"
-    )
-
-    chapters.update(
-        data_attribute_chapters
-    )
-
-    embedded_chapters = (
-        extract_json_chapters(
-            page_html,
-            source_url,
-        )
-    )
-
-    print(
-        f"[MTC] Embedded/JSON chapters: {len(embedded_chapters)}"
+    embedded_chapters = extract_json_chapters(
+        page_html,
+        source_url,
     )
 
     for number, item in embedded_chapters.items():
-
         if number not in chapters:
-
             chapters[number] = item
-
         else:
-
             current = chapters[number]
 
-            if (
-                not current.get("slug")
-                and item.get("slug")
-            ):
+            if not current.get("slug") and item.get("slug"):
                 current["slug"] = item["slug"]
 
-            if (
-                not current.get("url")
-                and item.get("url")
-            ):
+            if not current.get("url") and item.get("url"):
                 current["url"] = item["url"]
 
             if (
-                current.get("name", "").startswith(
-                    "Chương "
-                )
+                current.get("name", "").startswith("Chương ")
                 and item.get("name")
             ):
                 current["name"] = item["name"]
@@ -1009,16 +794,12 @@ def fetch_mtc_chapters(
     result = []
 
     for number in sorted(chapters):
-
         item = chapters[number]
 
         item["number"] = int(number)
-
         item["name"] = clean_text(
-            item.get("name")
-            or f"Chương {number}"
+            item.get("name") or f"Chương {number}"
         )
-
         item["url"] = normalize_url(
             item.get("url"),
             source_url,
@@ -1026,27 +807,10 @@ def fetch_mtc_chapters(
 
         result.append(item)
 
-    # ==============================
-    # DEBUG QUAN TRỌNG
-    # ==============================
-
-    print(
-        f"[MTC] TỔNG CỘNG TÌM ĐƯỢC: {len(result)} CHƯƠNG"
-    )
-
-    print(
-        "[MTC] DANH SÁCH SỐ CHƯƠNG:"
-    )
-
-    print(
-        [item["number"] for item in result]
-    )
-
     return result
 
 
 def extract_title(soup):
-
     selectors = [
         "h1",
         "[class*='title']",
@@ -1055,22 +819,14 @@ def extract_title(soup):
     ]
 
     for selector in selectors:
-
-        element = soup.select_one(
-            selector
-        )
+        element = soup.select_one(selector)
 
         if not element:
             continue
 
         if element.name == "meta":
-
-            value = element.get(
-                "content"
-            )
-
+            value = element.get("content")
         else:
-
             value = element.get_text(
                 " ",
                 strip=True,
@@ -1085,7 +841,6 @@ def extract_title(soup):
 
 
 def extract_author(soup):
-
     selectors = [
         "[class*='author']",
         "meta[name='author']",
@@ -1093,22 +848,14 @@ def extract_author(soup):
     ]
 
     for selector in selectors:
-
-        element = soup.select_one(
-            selector
-        )
+        element = soup.select_one(selector)
 
         if not element:
             continue
 
         if element.name == "meta":
-
-            value = element.get(
-                "content"
-            )
-
+            value = element.get("content")
         else:
-
             value = element.get_text(
                 " ",
                 strip=True,
@@ -1123,7 +870,6 @@ def extract_author(soup):
 
 
 def extract_description(soup):
-
     selectors = [
         "meta[name='description']",
         "meta[property='og:description']",
@@ -1132,22 +878,14 @@ def extract_description(soup):
     ]
 
     for selector in selectors:
-
-        element = soup.select_one(
-            selector
-        )
+        element = soup.select_one(selector)
 
         if not element:
             continue
 
         if element.name == "meta":
-
-            value = element.get(
-                "content"
-            )
-
+            value = element.get("content")
         else:
-
             value = element.get_text(
                 "\n",
                 strip=True,
@@ -1161,11 +899,7 @@ def extract_description(soup):
     return ""
 
 
-def extract_cover(
-    soup,
-    source_url,
-):
-
+def extract_cover(soup, source_url):
     selectors = [
         "meta[property='og:image']",
         "meta[name='twitter:image']",
@@ -1173,22 +907,14 @@ def extract_cover(
     ]
 
     for selector in selectors:
-
-        element = soup.select_one(
-            selector
-        )
+        element = soup.select_one(selector)
 
         if not element:
             continue
 
         if element.name == "meta":
-
-            value = element.get(
-                "content"
-            )
-
+            value = element.get("content")
         else:
-
             value = (
                 element.get("src")
                 or element.get("data-src")
@@ -1207,7 +933,6 @@ def extract_cover(
 
 
 def extract_categories(soup):
-
     categories = []
 
     for element in soup.select(
@@ -1216,7 +941,6 @@ def extract_categories(soup):
         "[class*='category'] a, "
         "[class*='tag'] a"
     ):
-
         name = clean_text(
             element.get_text(
                 " ",
@@ -1233,15 +957,8 @@ def extract_categories(soup):
     return categories
 
 
-def fetch_mtc_novel(
-    source_url,
-    browser_session=None,
-):
-
-    page_html = fetch_html(
-        source_url,
-        browser_session=browser_session,
-    )
+def fetch_mtc_novel(source_url, browser_session=None):
+    page_html = fetch_html(source_url, browser_session=browser_session)
 
     soup = BeautifulSoup(
         page_html,
@@ -1249,19 +966,13 @@ def fetch_mtc_novel(
     )
 
     title = extract_title(soup)
-
     author = extract_author(soup)
-
     description = extract_description(soup)
-
     cover = extract_cover(
         soup,
         source_url,
     )
-
-    categories = extract_categories(
-        soup
-    )
+    categories = extract_categories(soup)
 
     return {
         "title": title,
@@ -1273,10 +984,7 @@ def fetch_mtc_novel(
     }
 
 
-def extract_chapter_content_from_html(
-    page_html
-):
-
+def extract_chapter_content_from_html(page_html):
     soup = BeautifulSoup(
         page_html,
         "html.parser",
@@ -1295,18 +1003,13 @@ def extract_chapter_content_from_html(
     candidates = []
 
     for selector in selectors:
-
-        for element in soup.select(
-            selector
-        ):
-
+        for element in soup.select(selector):
             text = element.get_text(
                 "\n",
                 strip=True,
             )
 
             if len(text) >= 100:
-
                 candidates.append(
                     (
                         len(text),
@@ -1327,7 +1030,6 @@ def extract_chapter_content_from_html(
     for unwanted in element.select(
         "script, style, nav, button, header, footer"
     ):
-
         unwanted.decompose()
 
     text = element.get_text(
@@ -1338,7 +1040,6 @@ def extract_chapter_content_from_html(
     lines = []
 
     for line in text.splitlines():
-
         line = clean_text(line)
 
         if not line:
@@ -1346,91 +1047,48 @@ def extract_chapter_content_from_html(
 
         lines.append(line)
 
-    return "\n\n".join(
-        lines
-    ).strip()
+    return "\n\n".join(lines).strip()
 
 
-def fetch_mtc_chapter(
-    chapter_url,
-    browser_session=None,
-):
-
+def fetch_mtc_chapter(chapter_url, browser_session=None):
     if not chapter_url:
-
         return {
             "title": "",
             "content": "",
         }
 
     try:
+        page_html = fetch_html_requests(chapter_url)
 
-        page_html = fetch_html_requests(
-            chapter_url
-        )
-
-        content = (
-            extract_chapter_content_from_html(
-                page_html
-            )
-        )
+        content = extract_chapter_content_from_html(page_html)
 
         if len(content) >= 100:
-
-            soup = BeautifulSoup(
-                page_html,
-                "html.parser",
-            )
-
-            title = extract_title(
-                soup
-            )
-
+            soup = BeautifulSoup(page_html, "html.parser")
+            title = extract_title(soup)
             return {
                 "title": title,
                 "content": content,
             }
-
-    except Exception as error:
-
-        print(
-            f"[MTC] Requests lấy chương lỗi: {error}"
-        )
+    except Exception:
+        pass
 
     try:
-
         page_html = fetch_rendered_html(
             chapter_url,
             browser_session=browser_session,
         )
 
-        content = (
-            extract_chapter_content_from_html(
-                page_html
-            )
-        )
-
-        soup = BeautifulSoup(
-            page_html,
-            "html.parser",
-        )
-
-        title = extract_title(
-            soup
-        )
+        content = extract_chapter_content_from_html(page_html)
+        soup = BeautifulSoup(page_html, "html.parser")
+        title = extract_title(soup)
 
         return {
             "title": title,
             "content": content,
         }
-
-    except Exception as error:
-
-        print(
-            f"[MTC] Playwright lấy chương lỗi: {error}"
-        )
-
+    except Exception:
         return {
             "title": "",
             "content": "",
         }
+
