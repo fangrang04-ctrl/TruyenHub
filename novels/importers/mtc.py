@@ -145,172 +145,157 @@ def _chapter_link_count(page):
         return 0
 
 
-def _find_show_all(page):
-    """Find the MTC 'Xem tất cả' control and return its href when available."""
+def _chapter_text_count(page):
     try:
-        result = page.evaluate(
-            """
-            () => {
-                const normalize = value =>
-                    (value || '').replace(/\\s+/g, ' ').trim().toLowerCase();
-
-                const nodes = Array.from(document.querySelectorAll('a,button,[role="button"],*'));
-
-                for (const node of nodes) {
-                    const text = normalize(node.innerText || node.textContent);
-                    if (text !== 'xem tất cả') continue;
-
-                    const anchor = node.closest('a');
-                    if (anchor && anchor.href) {
-                        return {
-                            found: true,
-                            href: anchor.href,
-                            tag: 'a',
-                        };
-                    }
-
-                    return {
-                        found: true,
-                        href: '',
-                        tag: node.tagName.toLowerCase(),
-                    };
-                }
-
-                return { found: false, href: '', tag: '' };
-            }
-            """
-        )
-        return result or {"found": False, "href": "", "tag": ""}
+        return page.locator("text=/Chương\\s+\\d+/i").count()
     except Exception:
-        return {"found": False, "href": "", "tag": ""}
+        return 0
+
+
+def _find_show_all_controls(page):
+    """Return clickable elements/ancestors whose visible text is exactly 'Xem tất cả'."""
+    try:
+        return page.locator(
+            "a:has-text('Xem tất cả'), "
+            "button:has-text('Xem tất cả'), "
+            "[role='button']:has-text('Xem tất cả')"
+        )
+    except Exception:
+        return None
 
 
 def click_show_all(page):
-    """Open the complete MTC chapter list.
+    """Force MTC to expand/load the complete chapter list before parsing HTML."""
+    before_links = _chapter_link_count(page)
+    before_text = _chapter_text_count(page)
 
-    MTC can expose 'Xem tất cả' either as a normal link or as a JS button.
-    The old importer only clicked a visible text locator, which is fragile on
-    a headless Render browser. This version first resolves a real href and
-    navigates to it, then falls back to several click strategies.
-    """
-    before = _chapter_link_count(page)
+    # First, inspect the actual clickable element. If MTC exposes a real href,
+    # opening that href is more reliable than simulating a click in headless mode.
+    try:
+        info = page.evaluate(
+            """
+            () => {
+                const norm = s => (s || '').replace(/\\s+/g, ' ').trim().toLowerCase();
+                const all = Array.from(document.querySelectorAll('a,button,[role="button"]'));
+                const el = all.find(x => norm(x.innerText || x.textContent) === 'xem tất cả');
+                if (!el) return null;
+                return {
+                    tag: el.tagName,
+                    href: el.href || '',
+                    text: (el.innerText || el.textContent || '').trim()
+                };
+            }
+            """
+        )
+    except Exception:
+        info = None
 
-    # 1. If 'Xem tất cả' is actually an <a>, go to its destination directly.
-    control = _find_show_all(page)
-    href = normalize_url(control.get("href"), page.url) if control.get("href") else ""
-
-    if href and href != page.url:
-        try:
-            page.goto(
-                href,
-                wait_until="domcontentloaded",
-                timeout=60000,
-            )
+    # If it is a real link, navigate to it directly.
+    if info and info.get("href"):
+        href = normalize_url(info["href"], page.url)
+        if href and href != page.url:
             try:
-                page.wait_for_load_state(
-                    "networkidle",
-                    timeout=20000,
-                )
-            except PlaywrightTimeoutError:
+                page.goto(href, wait_until="domcontentloaded", timeout=60000)
+                try:
+                    page.wait_for_load_state("networkidle", timeout=15000)
+                except PlaywrightTimeoutError:
+                    pass
+                page.wait_for_timeout(1500)
+            except Exception:
                 pass
-            page.wait_for_timeout(1500)
+
+    # Main path: click the actual <a>/<button>, not an arbitrary child <span>.
+    controls = _find_show_all_controls(page)
+    if controls is not None:
+        try:
+            count = controls.count()
         except Exception:
-            pass
+            count = 0
 
-    # 2. If it is a JS control, try robust locator clicks.
-    if _chapter_link_count(page) <= before:
-        selectors = [
-            "a:has-text('Xem tất cả')",
-            "button:has-text('Xem tất cả')",
-            "[role='button']:has-text('Xem tất cả')",
-            "text=Xem tất cả",
-        ]
-
-        for selector in selectors:
+        for i in range(count):
+            control = controls.nth(i)
             try:
-                locator = page.locator(selector)
-                count = locator.count()
-                for index in range(count):
-                    item = locator.nth(index)
-                    try:
-                        if item.is_visible():
-                            item.scroll_into_view_if_needed(timeout=3000)
-                            item.click(timeout=5000, force=True)
-                            page.wait_for_timeout(1200)
-                            break
-                    except Exception:
-                        continue
-                if _chapter_link_count(page) > before:
-                    break
+                if not control.is_visible():
+                    continue
+                control.scroll_into_view_if_needed(timeout=5000)
+                page.wait_for_timeout(300)
+                control.click(force=True, timeout=10000)
+                page.wait_for_timeout(1000)
+                break
             except Exception:
                 continue
 
-    # 3. JS fallback for controls that are covered by another element.
-    if _chapter_link_count(page) <= before:
-        try:
-            page.evaluate(
-                """
-                () => {
-                    const normalize = value =>
-                        (value || '').replace(/\\s+/g, ' ').trim().toLowerCase();
-                    const elements = Array.from(document.querySelectorAll('*'));
-                    const target = elements.find(el =>
-                        normalize(el.innerText || el.textContent) === 'xem tất cả'
-                    );
-                    if (!target) return false;
-                    target.scrollIntoView({block: 'center'});
-                    target.dispatchEvent(new MouseEvent('mousedown', {bubbles: true}));
-                    target.dispatchEvent(new MouseEvent('mouseup', {bubbles: true}));
-                    target.click();
-                    return true;
-                }
-                """
-            )
-            page.wait_for_timeout(1500)
-        except Exception:
-            pass
+    # Fallback: find the text node and click its nearest clickable ancestor.
+    try:
+        clicked = page.evaluate(
+            """
+            () => {
+                const norm = s => (s || '').replace(/\\s+/g, ' ').trim().toLowerCase();
+                const nodes = Array.from(document.querySelectorAll('*'));
+                const textNode = nodes.find(el => norm(el.innerText || el.textContent) === 'xem tất cả');
+                if (!textNode) return false;
 
-    # 4. Give the page time to finish inserting chapters. Also scroll both
-    # the window and scrollable containers because some versions lazy-load
-    # the chapter list inside its own div.
-    last_count = _chapter_link_count(page)
-    stable_rounds = 0
-
-    for _ in range(35):
-        current = _chapter_link_count(page)
-
-        if current == last_count:
-            stable_rounds += 1
-        else:
-            stable_rounds = 0
-            last_count = current
-
-        try:
-            page.evaluate(
-                """
-                () => {
-                    window.scrollTo(0, document.body.scrollHeight);
-                    for (const el of document.querySelectorAll('*')) {
-                        const style = getComputedStyle(el);
-                        if ((style.overflowY === 'auto' || style.overflowY === 'scroll') &&
-                            el.scrollHeight > el.clientHeight) {
-                            el.scrollTop = el.scrollHeight;
-                        }
+                let target = textNode;
+                for (let i = 0; i < 5 && target; i++, target = target.parentElement) {
+                    const tag = (target.tagName || '').toLowerCase();
+                    if (tag === 'a' || tag === 'button' || target.getAttribute('role') === 'button') {
+                        target.scrollIntoView({block: 'center'});
+                        target.click();
+                        return true;
                     }
                 }
-                """
-            )
-        except Exception:
-            pass
+
+                textNode.scrollIntoView({block: 'center'});
+                textNode.click();
+                return true;
+            }
+            """
+        )
+        if clicked:
+            page.wait_for_timeout(1500)
+    except Exception:
+        pass
+
+    # Some MTC versions insert the complete list asynchronously. Wait for the
+    # DOM to grow instead of immediately taking page.content().
+    for _ in range(30):
+        current_links = _chapter_link_count(page)
+        current_text = _chapter_text_count(page)
+
+        if current_links > before_links or current_text > before_text:
+            # Keep waiting briefly because the list can be appended in batches.
+            page.wait_for_timeout(500)
+            continue
 
         page.wait_for_timeout(500)
 
-        if stable_rounds >= 5:
-            break
+    # One final scroll can trigger lazy rendering inside a scrollable chapter box.
+    try:
+        page.evaluate(
+            """
+            () => {
+                window.scrollTo(0, document.body.scrollHeight);
+                for (const el of document.querySelectorAll('*')) {
+                    const cs = getComputedStyle(el);
+                    if ((cs.overflowY === 'auto' || cs.overflowY === 'scroll') &&
+                        el.scrollHeight > el.clientHeight) {
+                        el.scrollTop = el.scrollHeight;
+                    }
+                }
+            }
+            """
+        )
+    except Exception:
+        pass
 
-    page.wait_for_timeout(1500)
-    return _chapter_link_count(page) > before or control.get("found", False)
+    page.wait_for_timeout(2000)
 
+    return {
+        "before_links": before_links,
+        "after_links": _chapter_link_count(page),
+        "before_text": before_text,
+        "after_text": _chapter_text_count(page),
+    }
 
 def fetch_rendered_html(url, browser_session=None):
     own_session = browser_session is None
