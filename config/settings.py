@@ -1,6 +1,7 @@
 from pathlib import Path
 import os
 import dj_database_url
+import cloudinary
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -39,6 +40,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'novels',
+    "cloudinary_storage",
+"cloudinary",
 ]
 
 
@@ -136,7 +139,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 STORAGES = {
     "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
     },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
