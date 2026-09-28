@@ -22,7 +22,7 @@ success = 0
 failed = 0
 
 for file_path in files:
-    relative_path = file_path.relative_to(MEDIA_DIR)
+    relative_path = file_path.relative_to(BASE_DIR)
     public_id = str(relative_path.with_suffix("")).replace("\\", "/")
 
     try:
