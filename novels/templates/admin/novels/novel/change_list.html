@@ -1,0 +1,286 @@
+{% extends "admin/change_list.html" %}
+
+{% block extrastyle %}
+{{ block.super }}
+
+<style>
+    .novel-admin-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 18px;
+        padding: 18px 20px;
+        background: linear-gradient(135deg, #1f2937, #111827);
+        border: 1px solid #374151;
+        border-radius: 12px;
+        color: #fff;
+    }
+
+    .novel-admin-header h2 {
+        margin: 0 0 5px;
+        font-size: 20px;
+        font-weight: 700;
+    }
+
+    .novel-admin-header p {
+        margin: 0;
+        color: #9ca3af;
+        font-size: 13px;
+    }
+
+    .novel-selection-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .novel-selected-count {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 12px;
+        border-radius: 8px;
+        background: #374151;
+        color: #d1d5db;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .novel-delete-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        min-height: 40px;
+        padding: 0 16px;
+        border: 0;
+        border-radius: 8px;
+        background: #dc2626;
+        color: #fff;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all .18s ease;
+    }
+
+    .novel-delete-button:hover {
+        background: #b91c1c;
+        transform: translateY(-1px);
+    }
+
+    .novel-delete-button:disabled {
+        background: #4b5563;
+        color: #9ca3af;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .novel-action {
+        display: inline-flex;
+        align-items: center;
+        min-height: 30px;
+        margin: 2px 3px 2px 0;
+        padding: 0 9px;
+        border-radius: 6px;
+        text-decoration: none !important;
+        font-size: 12px;
+        font-weight: 600;
+        transition: all .15s ease;
+    }
+
+    .novel-action-manage {
+        background: #2563eb;
+        color: #fff !important;
+    }
+
+    .novel-action-manage:hover {
+        background: #1d4ed8;
+    }
+
+    .novel-action-add {
+        background: #374151;
+        color: #fff !important;
+    }
+
+    .novel-action-add:hover {
+        background: #4b5563;
+    }
+
+    #changelist-form .actions {
+        border-radius: 10px;
+    }
+
+    #changelist-form .actions select,
+    #changelist-form .actions button,
+    #changelist-form .actions input[type="submit"] {
+        display: none !important;
+    }
+
+    #result_list tbody tr {
+        transition: background .15s ease;
+    }
+
+    #result_list tbody tr:hover {
+        background: rgba(37, 99, 235, .08);
+    }
+
+    #result_list th,
+    #result_list td {
+        vertical-align: middle;
+    }
+
+    #result_list th:first-child,
+    #result_list td:first-child {
+        width: 42px;
+        text-align: center;
+    }
+
+    @media (max-width: 800px) {
+        .novel-admin-header {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .novel-selection-info {
+            width: 100%;
+        }
+
+        .novel-delete-button {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="novel-admin-header">
+
+    <div>
+        <h2>📚 Quản lý thư viện truyện</h2>
+        <p>
+            Chọn một hoặc nhiều truyện để thực hiện thao tác hàng loạt.
+        </p>
+    </div>
+
+    <div class="novel-selection-info">
+
+        <span
+            id="novel-selected-count"
+            class="novel-selected-count"
+        >
+            0 truyện được chọn
+        </span>
+
+        <button
+            type="button"
+            id="novel-delete-button"
+            class="novel-delete-button"
+            disabled
+        >
+            🗑 Xóa truyện đã chọn
+        </button>
+
+    </div>
+
+</div>
+
+{{ block.super }}
+
+<script>
+(function () {
+
+    const form = document.getElementById('changelist-form');
+    const deleteButton = document.getElementById('novel-delete-button');
+    const selectedCount = document.getElementById('novel-selected-count');
+
+    if (!form || !deleteButton || !selectedCount) {
+        return;
+    }
+
+    function getSelected() {
+        return Array.from(
+            form.querySelectorAll(
+                'input[name="_selected_action"]:checked'
+            )
+        );
+    }
+
+    function updateSelection() {
+
+        const selected = getSelected();
+        const count = selected.length;
+
+        selectedCount.textContent =
+            count + ' truyện được chọn';
+
+        deleteButton.disabled = count === 0;
+    }
+
+    form.addEventListener(
+        'change',
+        function (event) {
+
+            if (
+                event.target.matches(
+                    'input[name="_selected_action"]'
+                )
+            ) {
+                updateSelection();
+            }
+
+            if (
+                event.target.matches(
+                    '#action-toggle'
+                )
+            ) {
+                updateSelection();
+            }
+        }
+    );
+
+    deleteButton.addEventListener(
+        'click',
+        function () {
+
+            const selected = getSelected();
+
+            if (!selected.length) {
+                return;
+            }
+
+            const confirmed = window.confirm(
+                'Bạn có chắc muốn xóa ' +
+                selected.length +
+                ' truyện đã chọn?\\n\\n' +
+                'Toàn bộ chương và ảnh bìa của các truyện này ' +
+                'cũng sẽ bị xóa.\\n\\n' +
+                'Hành động này không thể hoàn tác.'
+            );
+
+            if (!confirmed) {
+                return;
+            }
+
+            const actionSelect =
+                form.querySelector(
+                    'select[name="action"]'
+                );
+
+            if (!actionSelect) {
+                return;
+            }
+
+            actionSelect.value = 'delete_selected';
+
+            form.submit();
+        }
+    );
+
+    updateSelection();
+
+})();
+</script>
+
+{% endblock %}

@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        {{ chapter.title }} - {{ novel.title }} | TruyenHub
+    </title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+            background: #0b0b0f;
+            color: #dedee3;
+            line-height: 1.9;
+            transition:
+                background 0.25s,
+                color 0.25s;
+        }
+
+        body.light-mode {
+            background: #f1f1f1;
+            color: #222;
+        }
+
+        body.sepia-mode {
+            background: #f1e7d0;
+            color: #433b2e;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 70px;
+            left: 0;
+            width: 0%;
+            height: 3px;
+            background: #e50914;
+            z-index: 1100;
+        }
+
+        .page {
+            max-width: 1200px;
+            margin: auto;
+            padding: 30px 20px 100px;
+        }
+
+        .breadcrumb {
+            color: #666;
+            font-size: 13px;
+            margin-bottom: 25px;
+        }
+
+        .breadcrumb a {
+            color: #999;
+            transition: 0.2s;
+        }
+
+        .breadcrumb a:hover {
+            color: #e50914;
+        }
+
+        .breadcrumb span {
+            margin: 0 7px;
+        }
+
+        .reader-layout {
+            display: grid;
+            grid-template-columns:
+                minmax(0, 820px)
+                280px;
+            gap: 30px;
+            align-items: start;
+        }
+
+        .reader {
+            background: #111116;
+            border: 1px solid #24242b;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .reader-top {
+            padding: 35px 45px 25px;
+            border-bottom: 1px solid #24242b;
+        }
+
+        .chapter-label {
+            color: #e50914;
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .chapter-title {
+            color: #fff;
+            font-size: 30px;
+            line-height: 1.35;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .novel-title {
+            color: #777;
+            font-size: 13px;
+        }
+
+        .chapter-content {
+            padding: 40px 55px 50px;
+            font-size: 18px;
+            line-height: 2;
+            color: #d3d3d8;
+            word-break: break-word;
+        }
+
+        .chapter-content p {
+            margin-bottom: 1.4em;
+        }
+
+        .tts-box {
+            margin: 0 45px 35px;
+            padding: 18px;
+            border: 1px solid #292930;
+            background: #17171d;
+            border-radius: 7px;
+        }
+
+        .tts-title {
+            color: #fff;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .tts-description {
+            color: #666;
+            font-size: 11px;
+            margin-bottom: 12px;
+        }
+
+        .tts-button {
+            width: 100%;
+            border: none;
+            background: #24242b;
+            color: #888;
+            padding: 9px;
+            border-radius: 5px;
+            cursor: not-allowed;
+            font-size: 12px;
+        }
+
+        .reader-navigation {
+            border-top: 1px solid #24242b;
+            padding: 25px 35px;
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .nav-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: #1b1b21;
+            border: 1px solid #2b2b32;
+            color: #bbb;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            transition: 0.2s;
+        }
+
+        .nav-button:hover {
+            background: #292930;
+            color: #fff;
+        }
+
+        .nav-button.next {
+            background: #e50914;
+            border-color: #e50914;
+            color: #fff;
+        }
+
+        .nav-button.next:hover {
+            background: #f51b26;
+        }
+
+        .nav-button.disabled {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        .sidebar {
+            position: sticky;
+            top: 95px;
+        }
+
+        .sidebar-box {
+            background: #111116;
+            border: 1px solid #24242b;
+            border-radius: 9px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .sidebar-title {
+            padding: 16px 18px;
+            font-size: 14px;
+            font-weight: 800;
+            color: #fff;
+            border-bottom: 1px solid #24242b;
+        }
+
+        .sidebar-title span {
+            color: #e50914;
+        }
+
+        .settings {
+            padding: 15px;
+        }
+
+        .setting-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .setting-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .setting-label {
+            color: #777;
+            font-size: 12px;
+        }
+
+        .font-buttons,
+        .mode-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .font-btn,
+        .mode-btn {
+            width: 30px;
+            height: 30px;
+            background: #1b1b21;
+            border: 1px solid #2a2a31;
+            color: #bbb;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .font-btn:hover,
+        .mode-btn:hover {
+            background: #e50914;
+            color: #fff;
+            border-color: #e50914;
+        }
+
+        .chapter-list {
+            max-height: 520px;
+            overflow-y: auto;
+        }
+
+        .chapter-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 11px 15px;
+            border-bottom: 1px solid #1e1e24;
+            color: #999;
+            font-size: 12px;
+            transition: 0.15s;
+        }
+
+        .chapter-item:hover {
+            background: #1a1a20;
+            color: #fff;
+        }
+
+        .chapter-item.current {
+            background: rgba(229, 9, 20, 0.12);
+            color: #fff;
+            border-left: 3px solid #e50914;
+            padding-left: 12px;
+        }
+
+        .chapter-number {
+            color: #666;
+            min-width: 32px;
+            font-weight: bold;
+        }
+
+        .chapter-item.current .chapter-number {
+            color: #e50914;
+        }
+
+        .chapter-item-title {
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        body.light-mode .reader,
+        body.light-mode .sidebar-box {
+            background: #fff;
+            border-color: #ddd;
+        }
+
+        body.light-mode .chapter-title,
+        body.light-mode .sidebar-title,
+        body.light-mode .tts-title {
+            color: #222;
+        }
+
+        body.light-mode .chapter-content {
+            color: #333;
+        }
+
+        body.light-mode .reader-top,
+        body.light-mode .reader-navigation,
+        body.light-mode .sidebar-title {
+            border-color: #ddd;
+        }
+
+        body.light-mode .chapter-item:hover {
+            background: #f3f3f3;
+            color: #111;
+        }
+
+        body.sepia-mode .reader,
+        body.sepia-mode .sidebar-box {
+            background: #f7efde;
+            border-color: #d8c9ad;
+        }
+
+        body.sepia-mode .chapter-title,
+        body.sepia-mode .sidebar-title {
+            color: #392f22;
+        }
+
+        body.sepia-mode .chapter-content {
+            color: #514534;
+        }
+
+        @media (max-width: 900px) {
+
+            .reader-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: static;
+                order: 2;
+            }
+
+            .chapter-list {
+                max-height: 300px;
+            }
+
+        }
+
+        @media (max-width: 650px) {
+
+            .page {
+                padding: 20px 10px 60px;
+            }
+
+            .reader-top {
+                padding: 25px 22px 20px;
+            }
+
+            .chapter-title {
+                font-size: 24px;
+            }
+
+            .chapter-content {
+                padding: 30px 22px 40px;
+                font-size: 17px;
+                line-height: 1.9;
+            }
+
+            .tts-box {
+                margin: 0 22px 25px;
+            }
+
+            .reader-navigation {
+                padding: 18px;
+                flex-direction: column;
+            }
+
+            .nav-button {
+                width: 100%;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div
+    class="progress-bar"
+    id="progressBar"
+></div>
+
+
+{% include 'novels/partials/header.html' %}
+
+
+<main class="page">
+
+
+    <div class="breadcrumb">
+
+        <a href="{% url 'home' %}">
+            Trang chủ
+        </a>
+
+        <span>›</span>
+
+        <a href="{% url 'novel_detail' novel.id %}">
+            {{ novel.title }}
+        </a>
+
+        <span>›</span>
+
+        Chương {{ chapter.chapter_number }}
+
+    </div>
+
+
+    <div class="reader-layout">
+
+
+        <article class="reader">
+
+
+            <div class="reader-top">
+
+                <div class="chapter-label">
+                    Chương {{ chapter.chapter_number }}
+                </div>
+
+                <h1 class="chapter-title">
+                    {{ chapter.title }}
+                </h1>
+
+                <div class="novel-title">
+                    {{ novel.title }}
+                    ·
+                    {{ novel.author }}
+                </div>
+
+            </div>
+
+
+            <div
+                class="chapter-content"
+                id="chapterContent"
+            >
+
+                {{ chapter.content|linebreaks }}
+
+            </div>
+
+
+            <div class="tts-box">
+
+                <div class="tts-title">
+                    🔊 Nghe chương này
+                </div>
+
+                <div class="tts-description">
+                    Tính năng AI đọc truyện sẽ được tích hợp vào đây.
+                </div>
+
+                <button
+                    class="tts-button"
+                    disabled
+                >
+                    ▶ AI đọc truyện — Sắp ra mắt
+                </button>
+
+            </div>
+
+
+            <div class="reader-navigation">
+
+
+                {% if previous_chapter %}
+
+                    <a
+                        class="nav-button"
+                        href="{% url 'chapter_detail' novel.id previous_chapter.chapter_number %}"
+                    >
+                        ← Chương trước
+                    </a>
+
+                {% else %}
+
+                    <span class="nav-button disabled">
+                        ← Chương trước
+                    </span>
+
+                {% endif %}
+
+
+                <a
+                    class="nav-button"
+                    href="{% url 'novel_detail' novel.id %}"
+                >
+                    ☰ Mục lục
+                </a>
+
+
+                {% if next_chapter %}
+
+                    <a
+                        class="nav-button next"
+                        href="{% url 'chapter_detail' novel.id next_chapter.chapter_number %}"
+                    >
+                        Chương sau →
+                    </a>
+
+                {% else %}
+
+                    <span class="nav-button disabled">
+                        Chương sau →
+                    </span>
+
+                {% endif %}
+
+
+            </div>
+
+
+        </article>
+
+
+        <aside class="sidebar">
+
+
+            <div class="sidebar-box">
+
+
+                <div class="sidebar-title">
+                    ⚙ <span>Giao diện đọc</span>
+                </div>
+
+
+                <div class="settings">
+
+
+                    <div class="setting-row">
+
+                        <span class="setting-label">
+                            Cỡ chữ
+                        </span>
+
+                        <div class="font-buttons">
+
+                            <button
+                                class="font-btn"
+                                onclick="decreaseFont()"
+                            >
+                                A-
+                            </button>
+
+                            <button
+                                class="font-btn"
+                                onclick="increaseFont()"
+                            >
+                                A+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="setting-row">
+
+                        <span class="setting-label">
+                            Nền đọc
+                        </span>
+
+                        <div class="mode-buttons">
+
+                            <button
+                                class="mode-btn"
+                                onclick="setDark()"
+                                title="Tối"
+                            >
+                                ●
+                            </button>
+
+                            <button
+                                class="mode-btn"
+                                onclick="setLight()"
+                                title="Sáng"
+                            >
+                                ○
+                            </button>
+
+                            <button
+                                class="mode-btn"
+                                onclick="setSepia()"
+                                title="Sepia"
+                            >
+                                ◐
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                </div>
+
+
+            </div>
+
+
+            <div class="sidebar-box">
+
+
+                <div class="sidebar-title">
+
+                    📚 Danh sách
+                    <span>chương</span>
+
+                </div>
+
+
+                <div class="chapter-list">
+
+
+                    {% for item in chapters %}
+
+                        <a
+                            href="{% url 'chapter_detail' novel.id item.chapter_number %}"
+                            class="chapter-item {% if item.id == chapter.id %}current{% endif %}"
+                        >
+
+                            <span class="chapter-number">
+                                {{ item.chapter_number }}
+                            </span>
+
+                            <span class="chapter-item-title">
+                                {{ item.title }}
+                            </span>
+
+                        </a>
+
+                    {% endfor %}
+
+
+                </div>
+
+
+            </div>
+
+
+        </aside>
+
+
+    </div>
+
+
+</main>
+
+
+<script>
+
+    let fontSize = 18;
+
+    function updateFont() {
+
+        const content =
+            document.getElementById(
+                "chapterContent"
+            );
+
+        content.style.fontSize =
+            fontSize + "px";
+
+        localStorage.setItem(
+            "truyenhub_font_size",
+            fontSize
+        );
+
+    }
+
+
+    function increaseFont() {
+
+        if (fontSize < 28) {
+
+            fontSize += 1;
+
+            updateFont();
+
+        }
+
+    }
+
+
+    function decreaseFont() {
+
+        if (fontSize > 14) {
+
+            fontSize -= 1;
+
+            updateFont();
+
+        }
+
+    }
+
+
+    function setDark() {
+
+        document.body.classList.remove(
+            "light-mode",
+            "sepia-mode"
+        );
+
+        localStorage.setItem(
+            "truyenhub_reader_mode",
+            "dark"
+        );
+
+    }
+
+
+    function setLight() {
+
+        document.body.classList.remove(
+            "sepia-mode"
+        );
+
+        document.body.classList.add(
+            "light-mode"
+        );
+
+        localStorage.setItem(
+            "truyenhub_reader_mode",
+            "light"
+        );
+
+    }
+
+
+    function setSepia() {
+
+        document.body.classList.remove(
+            "light-mode"
+        );
+
+        document.body.classList.add(
+            "sepia-mode"
+        );
+
+        localStorage.setItem(
+            "truyenhub_reader_mode",
+            "sepia"
+        );
+
+    }
+
+
+    function loadSettings() {
+
+        const savedFont =
+            localStorage.getItem(
+                "truyenhub_font_size"
+            );
+
+        if (savedFont) {
+
+            fontSize =
+                parseInt(savedFont);
+
+            updateFont();
+
+        }
+
+
+        const savedMode =
+            localStorage.getItem(
+                "truyenhub_reader_mode"
+            );
+
+        if (savedMode === "light") {
+
+            setLight();
+
+        } else if (savedMode === "sepia") {
+
+            setSepia();
+
+        }
+
+    }
+
+
+    window.addEventListener(
+        "scroll",
+        function () {
+
+            const scrollTop =
+                window.scrollY;
+
+            const documentHeight =
+                document.documentElement
+                    .scrollHeight;
+
+            const windowHeight =
+                window.innerHeight;
+
+            const total =
+                documentHeight -
+                windowHeight;
+
+            let progress = 0;
+
+            if (total > 0) {
+
+                progress =
+                    (scrollTop / total) * 100;
+
+            }
+
+            document.getElementById(
+                "progressBar"
+            ).style.width =
+                progress + "%";
+
+        }
+    );
+
+
+    loadSettings();
+
+</script>
+
+
+</body>
+
+</html>

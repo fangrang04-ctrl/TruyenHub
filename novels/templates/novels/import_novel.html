@@ -1,0 +1,887 @@
+{% include 'novels/partials/header.html' %}
+
+<style>
+    .import-page {
+        min-height: calc(100vh - 70px);
+        background: #0b0b0f;
+        color: #fff;
+        padding: 50px 20px 80px;
+    }
+
+    .import-container {
+        max-width: 1150px;
+        margin: 0 auto;
+    }
+
+    .import-title {
+        margin-bottom: 30px;
+    }
+
+    .import-title h1 {
+        margin: 0 0 8px;
+        font-size: 32px;
+    }
+
+    .import-title p {
+        margin: 0;
+        color: #888;
+    }
+
+    .import-box,
+    .preview,
+    .chapter-import-box {
+        background: #15151b;
+        border: 1px solid #292932;
+        border-radius: 14px;
+        padding: 25px;
+        margin-bottom: 25px;
+    }
+
+    .import-label {
+        display: block;
+        margin-bottom: 10px;
+        font-weight: 600;
+    }
+
+    .import-input,
+    .chapter-input {
+        width: 100%;
+        box-sizing: border-box;
+        background: #0d0d12;
+        border: 1px solid #33333d;
+        color: #fff;
+        border-radius: 8px;
+        padding: 14px 16px;
+        font-size: 15px;
+        outline: none;
+    }
+
+    .import-input:focus,
+    .chapter-input:focus {
+        border-color: #e50914;
+    }
+
+    .button-row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 16px;
+    }
+
+    .import-button {
+        border: 0;
+        background: #e50914;
+        color: #fff;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .import-button:hover {
+        background: #f6121d;
+    }
+
+    .green-button {
+        background: #198754;
+    }
+
+    .green-button:hover {
+        background: #20a464;
+    }
+
+    .blue-button {
+        background: #2563eb;
+    }
+
+    .blue-button:hover {
+        background: #3474ef;
+    }
+
+    .import-progress-box {
+        background: #15151b;
+        border: 1px solid #292932;
+        border-radius: 14px;
+        padding: 20px 25px;
+        margin-bottom: 25px;
+    }
+
+    .import-progress-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        margin-bottom: 12px;
+    }
+
+    .import-progress-track {
+        width: 100%;
+        height: 10px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #2b2b35;
+    }
+
+    .import-progress-fill {
+        height: 100%;
+        border-radius: 999px;
+        background: #e50914;
+        transition: width 0.3s ease;
+    }
+
+    .import-progress-message {
+        margin-top: 12px;
+        color: #ddd;
+    }
+
+    .import-progress-detail {
+        margin-top: 6px;
+        color: #888;
+        font-size: 13px;
+    }
+
+    .import-progress-error {
+        margin-top: 12px;
+        padding: 12px;
+        border-radius: 8px;
+        background: #35151a;
+        color: #ff9ca3;
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+
+    .error-box {
+        margin-top: 15px;
+        padding: 14px;
+        border-radius: 8px;
+        background: #35151a;
+        color: #ff9ca3;
+    }
+
+    .success-box {
+        margin-top: 15px;
+        padding: 14px;
+        border-radius: 8px;
+        background: #12351f;
+        color: #8df0ad;
+    }
+
+    .preview {
+        display: grid;
+        grid-template-columns: 240px 1fr;
+        gap: 30px;
+    }
+
+    .preview-cover {
+        width: 100%;
+        aspect-ratio: 2 / 3;
+        object-fit: cover;
+        border-radius: 10px;
+        background: #222;
+    }
+
+    .preview-info h2 {
+        margin: 0 0 20px;
+        font-size: 28px;
+    }
+
+    .info-row {
+        margin-bottom: 12px;
+        color: #aaa;
+    }
+
+    .info-row strong {
+        color: #fff;
+    }
+
+    .description {
+        margin-top: 25px;
+        line-height: 1.8;
+        color: #bbb;
+        white-space: pre-line;
+    }
+
+    .category-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    .category {
+        background: #24242d;
+        border: 1px solid #353541;
+        color: #ddd;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 13px;
+    }
+
+    .chapter-title {
+        margin: 0 0 8px;
+        font-size: 24px;
+    }
+
+    .chapter-subtitle {
+        margin: 0 0 20px;
+        color: #888;
+    }
+
+    .chapter-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .chapter-action {
+        background: #0e0e13;
+        border: 1px solid #292932;
+        border-radius: 10px;
+        padding: 18px;
+    }
+
+    .chapter-action h3 {
+        margin: 0 0 8px;
+        font-size: 17px;
+    }
+
+    .chapter-action p {
+        margin: 0 0 14px;
+        color: #888;
+        font-size: 14px;
+    }
+
+    .range-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .chapter-list {
+        margin-top: 25px;
+        border-top: 1px solid #292932;
+    }
+
+    .chapter-list-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        padding: 18px 0;
+    }
+
+    .chapter-list-header h3 {
+        margin: 0;
+    }
+
+    .chapter-count {
+        color: #888;
+        font-size: 14px;
+    }
+
+    .chapter-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .chapter-table th,
+    .chapter-table td {
+        padding: 12px 10px;
+        border-top: 1px solid #292932;
+        text-align: left;
+    }
+
+    .chapter-table th {
+        color: #888;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .chapter-number {
+        width: 100px;
+        color: #e50914;
+        font-weight: 700;
+    }
+
+    .chapter-status {
+        width: 130px;
+    }
+
+    .status-imported {
+        color: #62e98b;
+    }
+
+    .status-new {
+        color: #888;
+    }
+
+    .source-link {
+        color: #e50914;
+        word-break: break-all;
+    }
+
+    @media (max-width: 700px) {
+        .import-page {
+            padding: 30px 15px 60px;
+        }
+
+        .preview {
+            grid-template-columns: 1fr;
+        }
+
+        .preview-cover {
+            max-width: 220px;
+        }
+
+        .import-title h1 {
+            font-size: 26px;
+        }
+
+        .range-row {
+            grid-template-columns: 1fr;
+        }
+
+        .chapter-table th:nth-child(3),
+        .chapter-table td:nth-child(3) {
+            display: none;
+        }
+    }
+</style>
+
+<main class="import-page">
+    <div class="import-container">
+
+        <div class="import-title">
+            <h1>Import truyện</h1>
+
+            <p>
+                Nhập thông tin truyện và lựa chọn phạm vi chương cần lấy.
+            </p>
+        </div>
+
+        {% if import_job_id %}
+
+            <div class="import-progress-box" id="importProgressBox">
+
+                <div class="import-progress-header">
+                    <strong>Tiến trình import</strong>
+                    <strong id="importProgressPercent">0%</strong>
+                </div>
+
+                <div class="import-progress-track">
+                    <div
+                        class="import-progress-fill"
+                        id="importProgressFill"
+                        style="width: 0%;"
+                    ></div>
+                </div>
+
+                <div
+                    class="import-progress-message"
+                    id="importProgressMessage"
+                    aria-live="polite"
+                >
+                    Đang kết nối tới tiến trình import...
+                </div>
+
+                <div
+                    class="import-progress-detail"
+                    id="importProgressDetail"
+                ></div>
+
+                <div
+                    class="import-progress-error"
+                    id="importProgressError"
+                    hidden
+                ></div>
+
+            </div>
+
+        {% endif %}
+
+        <div class="import-box">
+
+            <form method="post">
+                {% csrf_token %}
+
+                <label
+                    class="import-label"
+                    for="{{ form.source_url.id_for_label }}"
+                >
+                    URL truyện
+                </label>
+
+                {{ form.source_url }}
+
+                {% if form.source_url.errors %}
+                    <div class="error-box">
+                        {{ form.source_url.errors }}
+                    </div>
+                {% endif %}
+
+                <div class="button-row">
+
+                    <button
+                        type="submit"
+                        name="action"
+                        value="preview"
+                        class="import-button"
+                    >
+                        Kiểm tra truyện
+                    </button>
+
+                    {% if imported_data %}
+                        <button
+                            type="submit"
+                            name="action"
+                            value="save_novel"
+                            class="import-button green-button"
+                        >
+                            Nhập truyện vào TruyenHub
+                        </button>
+                    {% endif %}
+
+                </div>
+            </form>
+
+            {% if error_message %}
+                <div class="error-box">
+                    {{ error_message }}
+                </div>
+            {% endif %}
+
+            {% if success_message %}
+                <div class="success-box">
+                    {{ success_message }}
+                </div>
+            {% endif %}
+
+        </div>
+
+        {% if imported_data %}
+
+            <div class="preview">
+
+                <div>
+                    {% if imported_data.cover %}
+
+                        <img
+                            src="{{ imported_data.cover }}"
+                            class="preview-cover"
+                            alt="{{ imported_data.title }}"
+                        >
+
+                    {% else %}
+
+                        <div class="preview-cover"></div>
+
+                    {% endif %}
+                </div>
+
+                <div class="preview-info">
+
+                    <h2>
+                        {{ imported_data.title }}
+                    </h2>
+
+                    <div class="info-row">
+                        <strong>Tác giả:</strong>
+                        {{ imported_data.author|default:"Chưa xác định" }}
+                    </div>
+
+                    <div class="info-row">
+                        <strong>Nguồn:</strong>
+                        <span class="source-link">
+                            {{ imported_data.source_url }}
+                        </span>
+                    </div>
+
+                    {% if imported_data.categories %}
+
+                        <div class="info-row">
+                            <strong>Thể loại:</strong>
+
+                            <div class="category-list">
+
+                                {% for category in imported_data.categories %}
+
+                                    <span class="category">
+                                        {{ category }}
+                                    </span>
+
+                                {% endfor %}
+
+                            </div>
+                        </div>
+
+                    {% endif %}
+
+                    <div class="description">
+                        {{ imported_data.description }}
+                    </div>
+
+                </div>
+
+            </div>
+
+        {% endif %}
+
+        {% if imported_novel %}
+
+            <section class="chapter-import-box">
+
+                <h2 class="chapter-title">
+                    Import chương
+                </h2>
+
+                <p class="chapter-subtitle">
+                    {{ imported_novel.title }}
+                </p>
+
+                <div class="chapter-actions">
+
+                    <div class="chapter-action">
+
+                        <h3>
+                            Lấy danh sách chương
+                        </h3>
+
+                        <p>
+                            Dò toàn bộ chương hiện có trên nguồn.
+                        </p>
+
+                        <form method="post">
+                            {% csrf_token %}
+
+                            <input
+                                type="hidden"
+                                name="source_url"
+                                value="{{ imported_novel.source_url }}"
+                            >
+
+                            <button
+                                type="submit"
+                                name="action"
+                                value="load_chapters"
+                                class="import-button blue-button"
+                            >
+                                Lấy danh sách chương
+                            </button>
+                        </form>
+
+                    </div>
+
+                    <div class="chapter-action">
+
+                        <h3>
+                            Import một chương
+                        </h3>
+
+                        <p>
+                            Nhập số chương muốn lấy.
+                        </p>
+
+                        <form method="post">
+                            {% csrf_token %}
+
+                            <input
+                                type="hidden"
+                                name="source_url"
+                                value="{{ imported_novel.source_url }}"
+                            >
+
+                            <input
+                                type="number"
+                                name="chapter_number"
+                                class="chapter-input"
+                                min="1"
+                                placeholder="Ví dụ: 25"
+                                required
+                            >
+
+                            <div class="button-row">
+
+                                <button
+                                    type="submit"
+                                    name="action"
+                                    value="import_one"
+                                    class="import-button"
+                                >
+                                    Import chương này
+                                </button>
+
+                            </div>
+                        </form>
+
+                    </div>
+
+                    <div class="chapter-action">
+
+                        <h3>
+                            Import khoảng chương
+                        </h3>
+
+                        <p>
+                            Chọn từ chương nào đến chương nào.
+                        </p>
+
+                        <form method="post">
+                            {% csrf_token %}
+
+                            <input
+                                type="hidden"
+                                name="source_url"
+                                value="{{ imported_novel.source_url }}"
+                            >
+
+                            <div class="range-row">
+
+                                <input
+                                    type="number"
+                                    name="chapter_start"
+                                    class="chapter-input"
+                                    min="1"
+                                    placeholder="Từ chương"
+                                    required
+                                >
+
+                                <input
+                                    type="number"
+                                    name="chapter_end"
+                                    class="chapter-input"
+                                    min="1"
+                                    placeholder="Đến chương"
+                                    required
+                                >
+
+                            </div>
+
+                            <div class="button-row">
+
+                                <button
+                                    type="submit"
+                                    name="action"
+                                    value="import_range"
+                                    class="import-button"
+                                >
+                                    Import khoảng chương
+                                </button>
+
+                            </div>
+                        </form>
+
+                    </div>
+
+                    <div class="chapter-action">
+
+                        <h3>
+                            Import toàn bộ
+                        </h3>
+
+                        <p>
+                            Lấy toàn bộ chương mà nguồn đang có.
+                        </p>
+
+                        <form method="post">
+                            {% csrf_token %}
+
+                            <input
+                                type="hidden"
+                                name="source_url"
+                                value="{{ imported_novel.source_url }}"
+                            >
+
+                            <button
+                                type="submit"
+                                name="action"
+                                value="import_all"
+                                class="import-button green-button"
+                                onclick="return confirm('Bạn có chắc muốn import toàn bộ chương không?');"
+                            >
+                                Import toàn bộ chương
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+                {% if chapter_list %}
+
+                    <div class="chapter-list">
+
+                        <div class="chapter-list-header">
+
+                            <h3>
+                                Danh sách chương
+                            </h3>
+
+                            <span class="chapter-count">
+                                {{ chapter_list|length }} chương
+                            </span>
+
+                        </div>
+
+                        <table class="chapter-table">
+
+                            <thead>
+                                <tr>
+                                    <th>Chương</th>
+                                    <th>Tiêu đề</th>
+                                    <th>Trạng thái</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                                {% for chapter in chapter_list %}
+
+                                    <tr>
+
+                                        <td class="chapter-number">
+                                            {{ chapter.number }}
+                                        </td>
+
+                                        <td>
+                                            {{ chapter.title }}
+                                        </td>
+
+                                        <td class="chapter-status">
+
+                                            {% if chapter.imported %}
+
+                                                <span class="status-imported">
+                                                    Đã import
+                                                </span>
+
+                                            {% else %}
+
+                                                <span class="status-new">
+                                                    Chưa import
+                                                </span>
+
+                                            {% endif %}
+
+                                        </td>
+
+                                    </tr>
+
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                {% endif %}
+
+            </section>
+
+        {% endif %}
+
+    </div>
+</main>
+
+<script>
+    (function () {
+        const jobId = "{{ import_job_id|default:''|escapejs }}";
+
+        if (!jobId) {
+            return;
+        }
+
+        const fill = document.getElementById("importProgressFill");
+        const percent = document.getElementById("importProgressPercent");
+        const message = document.getElementById("importProgressMessage");
+        const detail = document.getElementById("importProgressDetail");
+        const errorBox = document.getElementById("importProgressError");
+
+        if (!fill || !percent || !message || !detail || !errorBox) {
+            return;
+        }
+
+        let timer = null;
+        let stopped = false;
+
+        function stopPolling() {
+            stopped = true;
+
+            if (timer !== null) {
+                clearTimeout(timer);
+                timer = null;
+            }
+        }
+
+        function renderJob(data) {
+            const value = Math.max(0, Math.min(100, Number(data.progress) || 0));
+            const current = Number(data.current) || 0;
+            const total = Number(data.total) || 0;
+
+            fill.style.width = value + "%";
+            percent.textContent = value + "%";
+            message.textContent = data.message || "Đang import...";
+
+            if (total > 0) {
+                detail.textContent = "Chương " + current + " / " + total;
+            } else {
+                detail.textContent = "";
+            }
+
+            if (data.status === "error") {
+                errorBox.hidden = false;
+                errorBox.textContent = data.error || "Import thất bại.";
+                stopPolling();
+                return;
+            }
+
+            if (data.status === "completed") {
+                fill.style.width = "100%";
+                percent.textContent = "100%";
+                stopPolling();
+            }
+        }
+
+        async function poll() {
+            if (stopped) {
+                return;
+            }
+
+            try {
+                const response = await fetch(
+                    "{% url 'import_status' %}?job_id=" + encodeURIComponent(jobId),
+                    {
+                        method: "GET",
+                        cache: "no-store",
+                        headers: {
+                            "X-Requested-With": "XMLHttpRequest"
+                        }
+                    }
+                );
+
+                const data = await response.json();
+
+                if (!response.ok || !data.ok) {
+                    throw new Error(data.error || "Không đọc được tiến trình import.");
+                }
+
+                renderJob(data);
+
+                if (!stopped) {
+                    timer = setTimeout(poll, 1000);
+                }
+            } catch (error) {
+                message.textContent = "Đang chờ backend phản hồi...";
+                detail.textContent = error.message || "Lỗi kết nối.";
+
+                if (!stopped) {
+                    timer = setTimeout(poll, 2000);
+                }
+            }
+        }
+
+        poll();
+    })();
+</script>

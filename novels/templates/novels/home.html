@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>TruyenHub - Đọc truyện online</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #0b0b0f;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .hero {
+            position: relative;
+            min-height: 480px;
+            overflow: hidden;
+            background:
+                radial-gradient(
+                    circle at 75% 35%,
+                    rgba(229, 9, 20, 0.18),
+                    transparent 38%
+                ),
+                linear-gradient(
+                    90deg,
+                    #0b0b0f 0%,
+                    #0b0b0f 38%,
+                    rgba(11, 11, 15, 0.65) 68%,
+                    #0b0b0f 100%
+                );
+        }
+
+        .hero-background {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+            opacity: 0.23;
+            filter: blur(2px);
+            transform: scale(1.04);
+        }
+
+        .hero-overlay {
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(
+                    90deg,
+                    #0b0b0f 0%,
+                    rgba(11, 11, 15, 0.93) 35%,
+                    rgba(11, 11, 15, 0.35) 75%,
+                    #0b0b0f 100%
+                ),
+                linear-gradient(
+                    0deg,
+                    #0b0b0f 0%,
+                    transparent 45%,
+                    #0b0b0f 100%
+                );
+        }
+
+        .hero-inner {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 1400px;
+            min-height: 480px;
+            margin: auto;
+            padding: 75px 30px;
+            display: flex;
+            align-items: center;
+        }
+
+        .hero-content {
+            max-width: 650px;
+        }
+
+        .hero-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 18px;
+            color: #e50914;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 1.4px;
+            text-transform: uppercase;
+        }
+
+        .hero-label::before {
+            content: "";
+            width: 25px;
+            height: 2px;
+            background: #e50914;
+        }
+
+        .hero-title {
+            margin-bottom: 14px;
+            font-size: clamp(32px, 4vw, 58px);
+            font-weight: 900;
+            line-height: 1.08;
+            letter-spacing: -1.5px;
+            overflow-wrap: anywhere;
+        }
+
+        .hero-author {
+            margin-bottom: 20px;
+            color: #c5c5cb;
+            font-size: 15px;
+        }
+
+        .hero-author strong {
+            color: #e50914;
+        }
+
+        .hero-description {
+            max-width: 600px;
+            margin-bottom: 28px;
+            color: #aaaab4;
+            font-size: 15px;
+            line-height: 1.8;
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .hero-buttons {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .primary-button,
+        .secondary-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            padding: 13px 21px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 800;
+            transition: 0.2s ease;
+        }
+
+        .primary-button {
+            background: #e50914;
+            color: #ffffff;
+        }
+
+        .primary-button:hover {
+            background: #f20b17;
+        }
+
+        .secondary-button {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            color: #ffffff;
+        }
+
+        .secondary-button:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .main {
+            width: 100%;
+            max-width: 1400px;
+            margin: auto;
+            padding: 45px 30px 70px;
+        }
+
+        .section-heading {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            position: relative;
+            padding-left: 15px;
+            font-size: 25px;
+            font-weight: 900;
+        }
+
+        .section-title::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 3px;
+            bottom: 3px;
+            width: 4px;
+            border-radius: 3px;
+            background: #e50914;
+        }
+
+        .section-more {
+            flex-shrink: 0;
+            color: #888892;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .section-more:hover {
+            color: #e50914;
+        }
+
+        .novel-grid {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            gap: 24px;
+        }
+
+        .novel-card {
+            min-width: 0;
+        }
+
+        .poster {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 2 / 3;
+            overflow: hidden;
+            border-radius: 8px;
+            background: #18181f;
+        }
+
+        .poster img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition:
+                transform 0.35s ease,
+                filter 0.35s ease;
+        }
+
+        .novel-card:hover .poster img {
+            transform: scale(1.07);
+            filter: brightness(0.7);
+        }
+
+        .poster-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666670;
+            font-size: 13px;
+        }
+
+        .new-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 5px 8px;
+            border-radius: 4px;
+            background: #e50914;
+            color: #ffffff;
+            font-size: 10px;
+            font-weight: 900;
+        }
+
+        .play-button {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 54px;
+            height: 54px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: #e50914;
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0.75);
+            transition:
+                opacity 0.25s ease,
+                transform 0.25s ease;
+        }
+
+        .novel-card:hover .play-button {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .play-icon {
+            margin-left: 3px;
+            font-size: 19px;
+        }
+
+        .novel-title {
+            margin-top: 12px;
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 800;
+            line-height: 1.35;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .novel-author {
+            margin-top: 6px;
+            color: #777780;
+            font-size: 12px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .novel-card:hover .novel-title {
+            color: #e50914;
+        }
+
+        .category-section {
+            margin-top: 65px;
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .category-card {
+            padding: 18px;
+            background: #15151b;
+            border: 1px solid #27272f;
+            border-radius: 8px;
+            color: #d8d8dc;
+            font-size: 14px;
+            font-weight: 700;
+            text-align: center;
+            transition:
+                border-color 0.2s ease,
+                background 0.2s ease,
+                transform 0.2s ease;
+        }
+
+        .category-card:hover {
+            border-color: #e50914;
+            background: #1b1b22;
+            color: #ffffff;
+            transform: translateY(-3px);
+        }
+
+        .empty-state {
+            padding: 70px 30px;
+            border: 1px solid #24242c;
+            border-radius: 10px;
+            background: #111117;
+            text-align: center;
+        }
+
+        .empty-state h2 {
+            margin-bottom: 12px;
+            font-size: 22px;
+        }
+
+        .empty-state p {
+            color: #888892;
+            font-size: 14px;
+        }
+
+        .footer {
+            border-top: 1px solid #24242c;
+            padding: 32px 30px;
+            color: #666670;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        @media (max-width: 1200px) {
+
+            .novel-grid {
+                grid-template-columns: repeat(5, minmax(0, 1fr));
+            }
+
+            .category-grid {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+
+        }
+
+        @media (max-width: 1000px) {
+
+            .novel-grid {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+
+            .category-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+
+        }
+
+        @media (max-width: 760px) {
+
+            .hero {
+                min-height: 390px;
+            }
+
+            .hero-inner {
+                min-height: 390px;
+                padding: 50px 20px 45px;
+            }
+
+            .hero-content {
+                max-width: 100%;
+            }
+
+            .hero-label {
+                margin-bottom: 14px;
+                font-size: 10px;
+            }
+
+            .hero-label::before {
+                width: 20px;
+            }
+
+            .hero-title {
+                margin-bottom: 12px;
+                font-size: 35px;
+                line-height: 1.12;
+            }
+
+            .hero-author {
+                margin-bottom: 15px;
+                font-size: 13px;
+            }
+
+            .hero-description {
+                margin-bottom: 22px;
+                font-size: 13px;
+                line-height: 1.65;
+                -webkit-line-clamp: 3;
+            }
+
+            .hero-buttons {
+                gap: 9px;
+            }
+
+            .primary-button,
+            .secondary-button {
+                padding: 11px 15px;
+                font-size: 12px;
+            }
+
+            .main {
+                padding: 32px 18px 55px;
+            }
+
+            .section-heading {
+                margin-bottom: 18px;
+            }
+
+            .section-title {
+                padding-left: 12px;
+                font-size: 21px;
+            }
+
+            .section-title::before {
+                width: 3px;
+            }
+
+            .section-more {
+                font-size: 11px;
+            }
+
+            .novel-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 20px 14px;
+            }
+
+            .novel-title {
+                margin-top: 9px;
+                font-size: 13px;
+            }
+
+            .novel-author {
+                margin-top: 5px;
+                font-size: 11px;
+            }
+
+            .new-badge {
+                top: 7px;
+                left: 7px;
+                padding: 4px 6px;
+                font-size: 8px;
+            }
+
+            .play-button {
+                width: 44px;
+                height: 44px;
+            }
+
+            .play-icon {
+                font-size: 15px;
+            }
+
+            .category-section {
+                margin-top: 45px;
+            }
+
+            .category-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 10px;
+            }
+
+            .category-card {
+                padding: 15px 10px;
+                font-size: 13px;
+            }
+
+            .footer {
+                padding: 25px 18px;
+                font-size: 11px;
+            }
+
+        }
+
+        @media (max-width: 480px) {
+
+            .hero {
+                min-height: 350px;
+            }
+
+            .hero-inner {
+                min-height: 350px;
+                padding: 38px 15px 35px;
+                align-items: flex-end;
+            }
+
+            .hero-background {
+                opacity: 0.18;
+            }
+
+            .hero-overlay {
+                background:
+                    linear-gradient(
+                        90deg,
+                        rgba(11, 11, 15, 0.98) 0%,
+                        rgba(11, 11, 15, 0.82) 100%
+                    ),
+                    linear-gradient(
+                        0deg,
+                        #0b0b0f 0%,
+                        transparent 55%,
+                        #0b0b0f 100%
+                    );
+            }
+
+            .hero-title {
+                max-width: 100%;
+                font-size: 28px;
+                letter-spacing: -0.7px;
+            }
+
+            .hero-description {
+                font-size: 12px;
+                -webkit-line-clamp: 2;
+            }
+
+            .hero-buttons {
+                width: 100%;
+            }
+
+            .primary-button,
+            .secondary-button {
+                flex: 1;
+                min-width: 0;
+                padding: 11px 10px;
+            }
+
+            .main {
+                padding: 28px 14px 45px;
+            }
+
+            .section-heading {
+                align-items: center;
+            }
+
+            .section-title {
+                font-size: 19px;
+            }
+
+            .section-more {
+                font-size: 10px;
+            }
+
+            .novel-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 22px 12px;
+            }
+
+            .novel-title {
+                font-size: 13px;
+            }
+
+            .novel-author {
+                font-size: 10px;
+            }
+
+            .play-button {
+                opacity: 1;
+                width: 38px;
+                height: 38px;
+                transform: translate(-50%, -50%) scale(0.85);
+            }
+
+            .play-icon {
+                font-size: 13px;
+            }
+
+            .category-section {
+                margin-top: 40px;
+            }
+
+            .category-grid {
+                grid-template-columns: 1fr;
+                gap: 9px;
+            }
+
+            .category-card {
+                padding: 14px;
+            }
+
+        }
+
+        @media (max-width: 360px) {
+
+            .hero {
+                min-height: 330px;
+            }
+
+            .hero-inner {
+                min-height: 330px;
+                padding: 32px 13px;
+            }
+
+            .hero-title {
+                font-size: 25px;
+            }
+
+            .hero-author {
+                font-size: 12px;
+            }
+
+            .hero-description {
+                margin-bottom: 17px;
+                font-size: 11px;
+            }
+
+            .primary-button,
+            .secondary-button {
+                padding: 10px 8px;
+                font-size: 11px;
+            }
+
+            .main {
+                padding-left: 12px;
+                padding-right: 12px;
+            }
+
+            .novel-grid {
+                gap: 19px 10px;
+            }
+
+            .novel-title {
+                font-size: 12px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+{% include 'novels/partials/header.html' %}
+
+
+{% if novels %}
+
+    {% with featured=novels.0 %}
+
+        <section class="hero">
+
+            {% if featured.cover %}
+
+                <div
+                    class="hero-background"
+                    style="background-image: url('{{ featured.cover.url }}');"
+                ></div>
+
+            {% endif %}
+
+            <div class="hero-overlay"></div>
+
+            <div class="hero-inner">
+
+                <div class="hero-content">
+
+                    <div class="hero-label">
+                        Truyện nổi bật
+                    </div>
+
+                    <h1 class="hero-title">
+                        {{ featured.title }}
+                    </h1>
+
+                    <p class="hero-author">
+                        Tác giả:
+                        <strong>
+                            {{ featured.author }}
+                        </strong>
+                    </p>
+
+                    {% if featured.description %}
+
+                        <p class="hero-description">
+                            {{ featured.description }}
+                        </p>
+
+                    {% else %}
+
+                        <p class="hero-description">
+                            Khám phá thế giới truyện hấp dẫn
+                            trên TruyenHub.
+                        </p>
+
+                    {% endif %}
+
+                    <div class="hero-buttons">
+
+                        <a
+                            href="{% url 'novel_detail' featured.id %}"
+                            class="primary-button"
+                        >
+                            ▶ Đọc truyện
+                        </a>
+
+                        <a
+                            href="{% url 'novel_detail' featured.id %}"
+                            class="secondary-button"
+                        >
+                            ℹ Chi tiết
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    {% endwith %}
+
+{% endif %}
+
+
+<main class="main">
+
+    <div class="section-heading">
+
+        <h2 class="section-title">
+            Truyện mới cập nhật
+        </h2>
+
+        <a
+            href="{% url 'new_novels' %}"
+            class="section-more"
+        >
+            Xem tất cả →
+        </a>
+
+    </div>
+
+
+    {% if novels %}
+
+        <section class="novel-grid">
+
+            {% for novel in novels %}
+
+                <article class="novel-card">
+
+                    <a
+                        href="{% url 'novel_detail' novel.id %}"
+                    >
+
+                        <div class="poster">
+
+                            {% if novel.cover %}
+
+                                <img
+                                    src="{{ novel.cover.url }}"
+                                    alt="{{ novel.title }}"
+                                    loading="lazy"
+                                >
+
+                            {% else %}
+
+                                <div class="poster-placeholder">
+                                    Chưa có ảnh
+                                </div>
+
+                            {% endif %}
+
+                            {% if forloop.counter <= 6 %}
+
+                                <span class="new-badge">
+                                    MỚI
+                                </span>
+
+                            {% endif %}
+
+                            <div class="play-button">
+
+                                <span class="play-icon">
+                                    ▶
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                        <h3 class="novel-title">
+                            {{ novel.title }}
+                        </h3>
+
+                        <p class="novel-author">
+                            {{ novel.author }}
+                        </p>
+
+                    </a>
+
+                </article>
+
+            {% endfor %}
+
+        </section>
+
+    {% else %}
+
+        <div class="empty-state">
+
+            <h2>
+                Chưa có truyện nào
+            </h2>
+
+            <p>
+                Hãy thêm truyện trong trang quản trị.
+            </p>
+
+        </div>
+
+    {% endif %}
+
+
+    {% if categories %}
+
+        <section class="category-section">
+
+            <div class="section-heading">
+
+                <h2 class="section-title">
+                    Thể loại
+                </h2>
+
+                <a
+                    href="{% url 'category_list' %}"
+                    class="section-more"
+                >
+                    Xem tất cả →
+                </a>
+
+            </div>
+
+            <div class="category-grid">
+
+                {% for category in categories|slice:":6" %}
+
+                    <a
+                        href="{% url 'category_detail' category.id %}"
+                        class="category-card"
+                    >
+                        {{ category.name }}
+                    </a>
+
+                {% endfor %}
+
+            </div>
+
+        </section>
+
+    {% endif %}
+
+</main>
+
+
+<footer class="footer">
+
+    © 2026 TruyenHub.
+    Nền tảng đọc truyện trực tuyến.
+
+</footer>
+
+
+</body>
+
+</html>

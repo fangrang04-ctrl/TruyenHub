@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+
+<html lang="vi">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Thể loại - TruyenHub
+    </title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            background: #0b0b0f;
+        }
+
+        body {
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+            background: #0b0b0f;
+            color: #ffffff;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .page {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 45px 30px 75px;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 25px;
+            margin-bottom: 32px;
+        }
+
+        .heading-area {
+            min-width: 0;
+        }
+
+        .eyebrow {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            margin-bottom: 10px;
+            color: #e50914;
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: 1.7px;
+            text-transform: uppercase;
+        }
+
+        .eyebrow::before {
+            content: "";
+            width: 25px;
+            height: 2px;
+            background: #e50914;
+        }
+
+        .title {
+            color: #ffffff;
+            font-size: 35px;
+            font-weight: 900;
+            line-height: 1.15;
+            letter-spacing: -0.8px;
+        }
+
+        .title span {
+            color: #e50914;
+        }
+
+        .subtitle {
+            max-width: 650px;
+            margin-top: 10px;
+            color: #85858f;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .category-count {
+            flex: 0 0 auto;
+            padding: 11px 15px;
+            border: 1px solid #292930;
+            border-radius: 7px;
+            background: #111117;
+            color: #85858f;
+            font-size: 12px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns:
+                repeat(4, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .category-card {
+            position: relative;
+            min-height: 125px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            padding: 25px;
+            overflow: hidden;
+            border: 1px solid #292930;
+            border-radius: 10px;
+            background:
+                linear-gradient(
+                    135deg,
+                    #18181f,
+                    #111116
+                );
+            transition:
+                transform 0.25s ease,
+                border-color 0.25s ease,
+                background 0.25s ease,
+                box-shadow 0.25s ease;
+        }
+
+        .category-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 0;
+            background: #e50914;
+            transition: height 0.25s ease;
+        }
+
+        .category-card::after {
+            content: "";
+            position: absolute;
+            right: -45px;
+            bottom: -65px;
+            width: 145px;
+            height: 145px;
+            border-radius: 50%;
+            background:
+                rgba(229, 9, 20, 0.08);
+            transition:
+                transform 0.3s ease,
+                background 0.3s ease;
+        }
+
+        .category-card:hover {
+            transform: translateY(-5px);
+            border-color: #e50914;
+            background:
+                linear-gradient(
+                    135deg,
+                    #202027,
+                    #15151a
+                );
+            box-shadow:
+                0 12px 35px rgba(0, 0, 0, 0.28);
+        }
+
+        .category-card:hover::before {
+            height: 100%;
+        }
+
+        .category-card:hover::after {
+            transform: scale(1.25);
+            background:
+                rgba(229, 9, 20, 0.12);
+        }
+
+        .category-name {
+            position: relative;
+            z-index: 2;
+            min-width: 0;
+            color: #ffffff;
+            font-size: 17px;
+            font-weight: 800;
+            line-height: 1.35;
+            transition: color 0.2s ease;
+        }
+
+        .category-card:hover .category-name {
+            color: #ffffff;
+        }
+
+        .category-arrow {
+            position: relative;
+            z-index: 2;
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border: 1px solid #303038;
+            border-radius: 50%;
+            color: #e50914;
+            font-size: 18px;
+            transition:
+                transform 0.25s ease,
+                background 0.25s ease,
+                border-color 0.25s ease;
+        }
+
+        .category-card:hover .category-arrow {
+            transform: translateX(5px);
+            border-color: #e50914;
+            background: #e50914;
+            color: #ffffff;
+        }
+
+        .empty {
+            padding: 80px 25px;
+            border:
+                1px solid #24242c;
+            border-radius: 10px;
+            background: #111117;
+            text-align: center;
+        }
+
+        .empty-icon {
+            margin-bottom: 15px;
+            color: #e50914;
+            font-size: 42px;
+        }
+
+        .empty-title {
+            margin-bottom: 8px;
+            color: #ffffff;
+            font-size: 21px;
+            font-weight: 900;
+        }
+
+        .empty-text {
+            color: #777780;
+            font-size: 13px;
+        }
+
+        .footer {
+            border-top:
+                1px solid #24242c;
+            padding:
+                32px 30px;
+            background: #0b0b0f;
+            color: #666670;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        @media (max-width: 1100px) {
+
+            .page {
+                padding-left: 24px;
+                padding-right: 24px;
+            }
+
+            .category-grid {
+                grid-template-columns:
+                    repeat(3, minmax(0, 1fr));
+            }
+
+        }
+
+        @media (max-width: 850px) {
+
+            .page-header {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .category-count {
+                align-self: flex-start;
+            }
+
+            .category-grid {
+                grid-template-columns:
+                    repeat(2, minmax(0, 1fr));
+                gap: 15px;
+            }
+
+        }
+
+        @media (max-width: 600px) {
+
+            .page {
+                padding:
+                    28px 14px 55px;
+            }
+
+            .page-header {
+                margin-bottom: 23px;
+            }
+
+            .eyebrow {
+                margin-bottom: 8px;
+                font-size: 9px;
+                letter-spacing: 1.3px;
+            }
+
+            .eyebrow::before {
+                width: 18px;
+            }
+
+            .title {
+                font-size: 27px;
+                letter-spacing: -0.5px;
+            }
+
+            .subtitle {
+                margin-top: 7px;
+                font-size: 11px;
+                line-height: 1.5;
+            }
+
+            .category-count {
+                padding: 8px 11px;
+                font-size: 10px;
+            }
+
+            .category-grid {
+                gap: 12px;
+            }
+
+            .category-card {
+                min-height: 100px;
+                padding: 19px;
+                border-radius: 8px;
+            }
+
+            .category-name {
+                font-size: 14px;
+            }
+
+            .category-arrow {
+                width: 29px;
+                height: 29px;
+                font-size: 15px;
+            }
+
+        }
+
+        @media (max-width: 480px) {
+
+            .category-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .category-card {
+                min-height: 76px;
+                padding: 17px 18px;
+            }
+
+            .category-name {
+                font-size: 14px;
+            }
+
+        }
+
+        @media (max-width: 360px) {
+
+            .page {
+                padding-left: 11px;
+                padding-right: 11px;
+            }
+
+            .title {
+                font-size: 24px;
+            }
+
+            .subtitle {
+                font-size: 10px;
+            }
+
+            .category-card {
+                min-height: 70px;
+                padding: 15px;
+            }
+
+            .category-name {
+                font-size: 13px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+{% include 'novels/partials/header.html' %}
+
+<main class="page">
+
+    <div class="page-header">
+
+        <div class="heading-area">
+
+            <div class="eyebrow">
+                TruyenHub
+            </div>
+
+            <h1 class="title">
+                Thể loại <span>truyện</span>
+            </h1>
+
+            <p class="subtitle">
+                Khám phá kho truyện theo thể loại yêu thích của bạn.
+            </p>
+
+        </div>
+
+        {% if categories %}
+
+            <div class="category-count">
+                {{ categories|length }} thể loại
+            </div>
+
+        {% endif %}
+
+    </div>
+
+    {% if categories %}
+
+        <section class="category-grid">
+
+            {% for category in categories %}
+
+                <a
+                    href="{% url 'category_detail' category.id %}"
+                    class="category-card"
+                >
+
+                    <span class="category-name">
+                        {{ category.name }}
+                    </span>
+
+                    <span class="category-arrow">
+                        →
+                    </span>
+
+                </a>
+
+            {% endfor %}
+
+        </section>
+
+    {% else %}
+
+        <div class="empty">
+
+            <div class="empty-icon">
+                📚
+            </div>
+
+            <div class="empty-title">
+                Chưa có thể loại
+            </div>
+
+            <div class="empty-text">
+                Hiện chưa có thể loại truyện nào được tạo.
+            </div>
+
+        </div>
+
+    {% endif %}
+
+</main>
+
+<footer class="footer">
+    © 2026 TruyenHub. Nền tảng đọc truyện trực tuyến.
+</footer>
+
+</body>
+
+</html>

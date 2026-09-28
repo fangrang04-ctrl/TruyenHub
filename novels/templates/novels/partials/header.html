@@ -1,0 +1,806 @@
+<header class="site-header">
+    <div class="header-container">
+        <a href="{% url 'home' %}" class="site-logo">
+            Truyen<span>Hub</span>
+        </a>
+
+        <nav class="desktop-nav">
+            <a href="{% url 'home' %}">Trang chủ</a>
+            <a href="{% url 'category_list' %}">Thể loại</a>
+            <a href="{% url 'new_novels' %}">Truyện mới</a>
+            <a href="{% url 'completed_novels' %}">Hoàn thành</a>
+        </nav>
+
+        <div class="header-right">
+            <form
+                method="get"
+                action="{% url 'search_novels' %}"
+                class="header-search"
+            >
+                <input
+                    type="text"
+                    name="q"
+                    placeholder="Tìm truyện..."
+                    autocomplete="off"
+                >
+            </form>
+
+            {% if user.is_authenticated %}
+                <div class="account-area">
+                    <button
+                        type="button"
+                        class="account-button"
+                        id="accountButton"
+                    >
+                        <span class="account-icon">👤</span>
+                        <span class="account-name">{{ user.username }}</span>
+                        <span class="account-arrow">⌄</span>
+                    </button>
+
+                    <div
+                        class="account-dropdown"
+                        id="accountDropdown"
+                    >
+                        <a href="{% url 'account' %}">
+                            <span>👤</span>
+                            <span>Tài khoản</span>
+                        </a>
+
+                        <a href="{% url 'followed_novels' %}">
+                            <span>❤️</span>
+                            <span>Truyện đang theo dõi</span>
+                        </a>
+
+                        <a href="{% url 'password_change' %}">
+                            <span>🔒</span>
+                            <span>Đổi mật khẩu</span>
+                        </a>
+
+                        <div class="dropdown-divider"></div>
+
+                        <a
+                            href="{% url 'logout' %}"
+                            class="logout-link"
+                        >
+                            <span>↪</span>
+                            <span>Đăng xuất</span>
+                        </a>
+                    </div>
+                </div>
+            {% else %}
+                <div class="desktop-auth">
+                    <a
+                        href="{% url 'login' %}"
+                        class="login-button"
+                    >
+                        Đăng nhập
+                    </a>
+
+                    <a
+                        href="{% url 'register' %}"
+                        class="register-button"
+                    >
+                        Đăng ký
+                    </a>
+                </div>
+            {% endif %}
+
+            <button
+                type="button"
+                class="mobile-menu-button"
+                id="mobileMenuButton"
+                aria-label="Mở menu"
+                aria-expanded="false"
+            >
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </div>
+
+    <div
+        class="mobile-menu"
+        id="mobileMenu"
+    >
+        <nav class="mobile-nav">
+            <a href="{% url 'home' %}">
+                <span>⌂</span>
+                <strong>Trang chủ</strong>
+            </a>
+
+            <a href="{% url 'category_list' %}">
+                <span>▦</span>
+                <strong>Thể loại</strong>
+            </a>
+
+            <a href="{% url 'new_novels' %}">
+                <span>✦</span>
+                <strong>Truyện mới</strong>
+            </a>
+
+            <a href="{% url 'completed_novels' %}">
+                <span>✓</span>
+                <strong>Hoàn thành</strong>
+            </a>
+        </nav>
+
+        <div class="mobile-divider"></div>
+
+        {% if user.is_authenticated %}
+            <div class="mobile-account-title">
+                <span class="mobile-avatar">
+                    {{ user.username|first|upper }}
+                </span>
+
+                <div>
+                    <small>Tài khoản</small>
+                    <strong>{{ user.username }}</strong>
+                </div>
+            </div>
+
+            <div class="mobile-account-links">
+                <a href="{% url 'account' %}">
+                    <span>👤</span>
+                    Tài khoản
+                </a>
+
+                <a href="{% url 'followed_novels' %}">
+                    <span>❤️</span>
+                    Truyện đang theo dõi
+                </a>
+
+                <a href="{% url 'password_change' %}">
+                    <span>🔒</span>
+                    Đổi mật khẩu
+                </a>
+
+                <a
+                    href="{% url 'logout' %}"
+                    class="mobile-logout"
+                >
+                    <span>↪</span>
+                    Đăng xuất
+                </a>
+            </div>
+        {% else %}
+            <div class="mobile-auth">
+                <a
+                    href="{% url 'login' %}"
+                    class="mobile-login"
+                >
+                    Đăng nhập
+                </a>
+
+                <a
+                    href="{% url 'register' %}"
+                    class="mobile-register"
+                >
+                    Đăng ký
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</header>
+
+<style>
+    .site-header {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        width: 100%;
+        height: 68px;
+        background: rgba(11, 11, 15, 0.97);
+        border-bottom: 1px solid #24242b;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+    }
+
+    .site-header,
+    .site-header *,
+    .site-header *::before,
+    .site-header *::after {
+        box-sizing: border-box;
+    }
+
+    .site-header a {
+        text-decoration: none;
+    }
+
+    .header-container {
+        width: 100%;
+        max-width: 1400px;
+        height: 68px;
+        margin: 0 auto;
+        padding: 0 24px;
+        display: flex;
+        align-items: center;
+        gap: 32px;
+    }
+
+    .site-logo {
+        flex: 0 0 auto;
+        color: #ffffff;
+        font-size: 26px;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -1px;
+        white-space: nowrap;
+    }
+
+    .site-logo span {
+        color: #e50914;
+    }
+
+    .desktop-nav {
+        display: flex;
+        align-items: center;
+        gap: 23px;
+    }
+
+    .desktop-nav a {
+        color: #b9b9c0;
+        font-size: 13px;
+        font-weight: 700;
+        white-space: nowrap;
+        transition: color 0.2s ease;
+    }
+
+    .desktop-nav a:hover {
+        color: #ffffff;
+    }
+
+    .header-right {
+        min-width: 0;
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+
+    .header-search {
+        width: 225px;
+        height: 38px;
+        margin: 0;
+        flex: 0 1 225px;
+    }
+
+    .header-search input {
+        width: 100%;
+        height: 38px;
+        display: block;
+        padding: 0 13px;
+        border: 1px solid #292930;
+        border-radius: 7px;
+        outline: none;
+        background: #17171d;
+        color: #ffffff;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 13px;
+        line-height: 38px;
+    }
+
+    .header-search input::placeholder {
+        color: #777780;
+    }
+
+    .header-search input:focus {
+        border-color: #e50914;
+    }
+
+    .account-area {
+        position: relative;
+        flex: 0 0 auto;
+    }
+
+    .account-button {
+        height: 38px;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        padding: 0 10px;
+        border: 1px solid transparent;
+        border-radius: 7px;
+        background: transparent;
+        color: #d8d8dd;
+        cursor: pointer;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 13px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .account-button:hover,
+    .account-button.active {
+        background: #17171d;
+        border-color: #292930;
+    }
+
+    .account-icon {
+        font-size: 14px;
+    }
+
+    .account-name {
+        max-width: 120px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .account-arrow {
+        color: #888892;
+        font-size: 14px;
+        transition: transform 0.2s ease;
+    }
+
+    .account-button.active .account-arrow {
+        transform: rotate(180deg);
+    }
+
+    .account-dropdown {
+        position: absolute;
+        top: calc(100% + 9px);
+        right: 0;
+        width: 235px;
+        padding: 7px;
+        display: none;
+        border: 1px solid #292930;
+        border-radius: 9px;
+        background: #141419;
+        box-shadow: 0 18px 45px rgba(0, 0, 0, 0.5);
+    }
+
+    .account-dropdown.open {
+        display: block;
+    }
+
+    .account-dropdown a {
+        min-height: 41px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 11px;
+        border-radius: 6px;
+        color: #c9c9cf;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .account-dropdown a span:first-child {
+        width: 18px;
+        flex: 0 0 18px;
+        text-align: center;
+    }
+
+    .account-dropdown a:hover {
+        background: #202027;
+        color: #ffffff;
+    }
+
+    .account-dropdown .logout-link {
+        color: #ff4b55;
+    }
+
+    .account-dropdown .logout-link:hover {
+        background: rgba(229, 9, 20, 0.1);
+        color: #ff5b64;
+    }
+
+    .dropdown-divider {
+        height: 1px;
+        margin: 6px 4px;
+        background: #292930;
+    }
+
+    .desktop-auth {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+
+    .login-button,
+    .register-button {
+        height: 36px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 13px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .login-button {
+        background: #e50914;
+        color: #ffffff;
+    }
+
+    .login-button:hover {
+        background: #f51b26;
+    }
+
+    .register-button {
+        border: 1px solid #34343d;
+        background: transparent;
+        color: #dddddf;
+    }
+
+    .register-button:hover {
+        border-color: #555560;
+        background: #17171d;
+        color: #ffffff;
+    }
+
+    .mobile-menu-button {
+        width: 40px;
+        height: 40px;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 5px;
+        padding: 0;
+        border: 1px solid #292930;
+        border-radius: 7px;
+        background: #17171d;
+        cursor: pointer;
+        flex: 0 0 40px;
+    }
+
+    .mobile-menu-button span {
+        width: 18px;
+        height: 2px;
+        border-radius: 2px;
+        background: #dddddf;
+        transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    .mobile-menu-button.active span:nth-child(1) {
+        transform: translateY(7px) rotate(45deg);
+    }
+
+    .mobile-menu-button.active span:nth-child(2) {
+        opacity: 0;
+    }
+
+    .mobile-menu-button.active span:nth-child(3) {
+        transform: translateY(-7px) rotate(-45deg);
+    }
+
+    .mobile-menu {
+        display: none;
+    }
+
+    @media (max-width: 1080px) {
+        .header-container {
+            gap: 20px;
+        }
+
+        .desktop-nav {
+            gap: 16px;
+        }
+
+        .header-search {
+            width: 190px;
+            flex-basis: 190px;
+        }
+    }
+
+    @media (max-width: 850px) {
+        .desktop-nav {
+            display: none;
+        }
+
+        .header-search {
+            width: 230px;
+            flex-basis: 230px;
+        }
+
+        .mobile-menu-button {
+            display: flex;
+        }
+    }
+
+    @media (max-width: 600px) {
+        .site-header {
+            height: 62px;
+        }
+
+        .header-container {
+            height: 62px;
+            padding: 0 12px;
+            gap: 9px;
+        }
+
+        .site-logo {
+            font-size: 22px;
+            letter-spacing: -0.8px;
+        }
+
+        .header-right {
+            flex: 1;
+            min-width: 0;
+            gap: 7px;
+        }
+
+        .header-search {
+            width: auto;
+            height: 36px;
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+
+        .header-search input {
+            height: 36px;
+            padding: 0 11px;
+            font-size: 12px;
+            line-height: 36px;
+        }
+
+        .account-area,
+        .desktop-auth {
+            display: none;
+        }
+
+        .mobile-menu-button {
+            width: 38px;
+            height: 38px;
+            flex-basis: 38px;
+        }
+
+        .mobile-menu {
+            position: absolute;
+            top: 62px;
+            left: 0;
+            width: 100%;
+            max-height: calc(100vh - 62px);
+            overflow-y: auto;
+            padding: 12px 12px 20px;
+            border-bottom: 1px solid #292930;
+            background: #101015;
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .mobile-menu.open {
+            display: block;
+        }
+
+        .mobile-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .mobile-nav a {
+            min-height: 47px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 12px;
+            border-radius: 7px;
+            color: #d0d0d5;
+            font-size: 14px;
+        }
+
+        .mobile-nav a:hover {
+            background: #1b1b22;
+            color: #ffffff;
+        }
+
+        .mobile-nav a span {
+            width: 23px;
+            flex: 0 0 23px;
+            color: #e50914;
+            text-align: center;
+            font-size: 17px;
+        }
+
+        .mobile-divider {
+            height: 1px;
+            margin: 10px 0;
+            background: #292930;
+        }
+
+        .mobile-account-title {
+            min-height: 56px;
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 4px 10px;
+            color: #ffffff;
+        }
+
+        .mobile-avatar {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: #e50914;
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 900;
+        }
+
+        .mobile-account-title div {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .mobile-account-title small {
+            color: #777780;
+            font-size: 10px;
+        }
+
+        .mobile-account-title strong {
+            color: #ffffff;
+            font-size: 14px;
+        }
+
+        .mobile-account-links {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .mobile-account-links a {
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 12px;
+            border-radius: 7px;
+            color: #c4c4ca;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .mobile-account-links a span {
+            width: 22px;
+            flex: 0 0 22px;
+            text-align: center;
+        }
+
+        .mobile-account-links a:hover {
+            background: #1b1b22;
+            color: #ffffff;
+        }
+
+        .mobile-account-links .mobile-logout {
+            margin-top: 5px;
+            color: #ff4b55;
+        }
+
+        .mobile-auth {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .mobile-auth a {
+            height: 43px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .mobile-login {
+            background: #e50914;
+            color: #ffffff;
+        }
+
+        .mobile-register {
+            border: 1px solid #34343d;
+            background: #17171d;
+            color: #dddddf;
+        }
+    }
+
+    @media (max-width: 390px) {
+        .header-container {
+            padding: 0 10px;
+            gap: 7px;
+        }
+
+        .site-logo {
+            font-size: 20px;
+        }
+
+        .header-search input {
+            padding: 0 9px;
+        }
+
+        .mobile-menu-button {
+            width: 37px;
+            height: 37px;
+            flex-basis: 37px;
+        }
+    }
+
+    @media (max-width: 340px) {
+        .site-logo {
+            font-size: 18px;
+        }
+
+        .header-container {
+            gap: 5px;
+        }
+
+        .header-search input {
+            font-size: 11px;
+        }
+    }
+</style>
+
+<script>
+    const accountButton = document.getElementById('accountButton');
+    const accountDropdown = document.getElementById('accountDropdown');
+    const mobileMenuButton = document.getElementById('mobileMenuButton');
+    const mobileMenu = document.getElementById('mobileMenu');
+
+    if (accountButton && accountDropdown) {
+        accountButton.addEventListener('click', function(event) {
+            event.stopPropagation();
+
+            accountDropdown.classList.toggle('open');
+            accountButton.classList.toggle('active');
+        });
+    }
+
+    if (mobileMenuButton && mobileMenu) {
+        mobileMenuButton.addEventListener('click', function(event) {
+            event.stopPropagation();
+
+            const isOpen = mobileMenu.classList.toggle('open');
+
+            mobileMenuButton.classList.toggle('active', isOpen);
+            mobileMenuButton.setAttribute(
+                'aria-expanded',
+                isOpen ? 'true' : 'false'
+            );
+        });
+
+        mobileMenu.querySelectorAll('a').forEach(function(link) {
+            link.addEventListener('click', function() {
+                mobileMenu.classList.remove('open');
+                mobileMenuButton.classList.remove('active');
+                mobileMenuButton.setAttribute(
+                    'aria-expanded',
+                    'false'
+                );
+            });
+        });
+    }
+
+    document.addEventListener('click', function(event) {
+        if (
+            accountDropdown &&
+            accountButton &&
+            !accountDropdown.contains(event.target) &&
+            !accountButton.contains(event.target)
+        ) {
+            accountDropdown.classList.remove('open');
+            accountButton.classList.remove('active');
+        }
+
+        if (
+            mobileMenu &&
+            mobileMenuButton &&
+            !mobileMenu.contains(event.target) &&
+            !mobileMenuButton.contains(event.target)
+        ) {
+            mobileMenu.classList.remove('open');
+            mobileMenuButton.classList.remove('active');
+            mobileMenuButton.setAttribute(
+                'aria-expanded',
+                'false'
+            );
+        }
+    });
+</script>

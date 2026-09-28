@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        {% if query %}
+            Tìm kiếm "{{ query }}" - TruyenHub
+        {% else %}
+            Tìm kiếm - TruyenHub
+        {% endif %}
+    </title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            background: #0b0b0f;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #0b0b0f;
+            color: #ffffff;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        button {
+            font-family: inherit;
+        }
+
+        .page {
+            width: 100%;
+            max-width: 1400px;
+            margin: auto;
+            padding: 45px 30px 70px;
+        }
+
+        .page-title {
+            margin-bottom: 8px;
+            color: #ffffff;
+            font-size: 30px;
+            font-weight: 900;
+            line-height: 1.2;
+        }
+
+        .page-title span {
+            color: #e50914;
+        }
+
+        .result-info {
+            margin-bottom: 28px;
+            color: #85858d;
+            font-size: 14px;
+        }
+
+        .result-info strong {
+            color: #ffffff;
+        }
+
+        .search-layout {
+            display: grid;
+            grid-template-columns: 230px minmax(0, 1fr);
+            gap: 30px;
+            align-items: start;
+        }
+
+        .filter-box {
+            position: sticky;
+            top: 95px;
+            padding: 20px;
+            background: #121217;
+            border: 1px solid #27272f;
+            border-radius: 9px;
+        }
+
+        .filter-title {
+            margin-bottom: 17px;
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 800;
+        }
+
+        .filter-list {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-link {
+            display: block;
+            padding: 10px 11px;
+            border-radius: 6px;
+            color: #92929b;
+            font-size: 13px;
+            font-weight: 600;
+            transition:
+                background 0.2s ease,
+                color 0.2s ease;
+        }
+
+        .filter-link:hover {
+            background: #1d1d24;
+            color: #ffffff;
+        }
+
+        .filter-link.active {
+            background: #e50914;
+            color: #ffffff;
+        }
+
+        .results-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+
+        .results-title {
+            color: #ffffff;
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        .selected-category {
+            color: #e50914;
+        }
+
+        .sort-box {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 25px;
+            padding: 12px;
+            border: 1px solid #27272f;
+            border-radius: 8px;
+            background: #121217;
+        }
+
+        .sort-label {
+            flex: 0 0 auto;
+            color: #777780;
+            font-size: 10px;
+            font-weight: 900;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+        }
+
+        .sort-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 6px;
+        }
+
+        .sort-button {
+            border: 1px solid #2c2c35;
+            border-radius: 6px;
+            padding: 8px 11px;
+            background: #19191f;
+            color: #92929b;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition:
+                background 0.2s ease,
+                border-color 0.2s ease,
+                color 0.2s ease;
+        }
+
+        .sort-button:hover {
+            border-color: #e50914;
+            color: #ffffff;
+        }
+
+        .sort-button.active {
+            border-color: #e50914;
+            background: #e50914;
+            color: #ffffff;
+        }
+
+        .novel-grid {
+            display: grid;
+            grid-template-columns:
+                repeat(5, minmax(0, 1fr));
+            gap: 28px 20px;
+        }
+
+        .novel-card {
+            min-width: 0;
+        }
+
+        .poster {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 2 / 3;
+            overflow: hidden;
+            border-radius: 8px;
+            background: #18181e;
+        }
+
+        .poster img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition:
+                transform 0.35s ease,
+                filter 0.35s ease;
+        }
+
+        .novel-card:hover .poster img {
+            transform: scale(1.07);
+            filter: brightness(0.65);
+        }
+
+        .poster-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background:
+                linear-gradient(
+                    145deg,
+                    #1d1d24,
+                    #111117
+                );
+            color: #62626c;
+            font-size: 12px;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .status-badge {
+            position: absolute;
+            z-index: 3;
+            top: 9px;
+            left: 9px;
+            padding: 5px 8px;
+            border-radius: 4px;
+            background: #24242b;
+            color: #ffffff;
+            font-size: 8px;
+            font-weight: 900;
+            letter-spacing: 0.4px;
+        }
+
+        .status-badge.completed {
+            background: #e50914;
+        }
+
+        .play-button {
+            position: absolute;
+            z-index: 4;
+            left: 50%;
+            top: 50%;
+            width: 52px;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: #e50914;
+            opacity: 0;
+            transform:
+                translate(-50%, -50%)
+                scale(0.8);
+            transition:
+                opacity 0.25s ease,
+                transform 0.25s ease;
+        }
+
+        .novel-card:hover .play-button {
+            opacity: 1;
+            transform:
+                translate(-50%, -50%)
+                scale(1);
+        }
+
+        .play-icon {
+            margin-left: 3px;
+            font-size: 18px;
+        }
+
+        .novel-info {
+            min-width: 0;
+        }
+
+        .novel-title {
+            margin-top: 11px;
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 800;
+            line-height: 1.35;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: color 0.2s ease;
+        }
+
+        .novel-card:hover .novel-title {
+            color: #e50914;
+        }
+
+        .novel-author {
+            margin-top: 5px;
+            color: #777780;
+            font-size: 11px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .novel-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .chapter-count {
+            color: #85858d;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        .novel-status {
+            color: #777780;
+            font-size: 9px;
+            font-weight: 700;
+        }
+
+        .novel-status.completed {
+            color: #e50914;
+        }
+
+        .hidden-card {
+            display: none;
+        }
+
+        .no-filter-result {
+            display: none;
+            margin-top: 20px;
+            padding: 50px 20px;
+            border: 1px solid #24242c;
+            border-radius: 9px;
+            background: #111117;
+            text-align: center;
+        }
+
+        .no-filter-result.show {
+            display: block;
+        }
+
+        .no-filter-result-icon {
+            margin-bottom: 10px;
+            font-size: 34px;
+        }
+
+        .no-filter-result-title {
+            margin-bottom: 7px;
+            color: #ffffff;
+            font-size: 17px;
+            font-weight: 800;
+        }
+
+        .no-filter-result-text {
+            color: #777780;
+            font-size: 12px;
+        }
+
+        .empty {
+            padding: 70px 30px;
+            border: 1px solid #24242c;
+            border-radius: 10px;
+            background: #111117;
+            text-align: center;
+        }
+
+        .empty-icon {
+            margin-bottom: 15px;
+            font-size: 45px;
+        }
+
+        .empty h2 {
+            margin-bottom: 10px;
+            font-size: 21px;
+        }
+
+        .empty p {
+            color: #777780;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .home-button {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 11px 20px;
+            border-radius: 6px;
+            background: #e50914;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .footer {
+            border-top: 1px solid #24242c;
+            padding: 32px 30px;
+            background: #0b0b0f;
+            color: #666670;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        @media (max-width: 1200px) {
+
+            .novel-grid {
+                grid-template-columns:
+                    repeat(4, minmax(0, 1fr));
+            }
+
+        }
+
+        @media (max-width: 950px) {
+
+            .search-layout {
+                grid-template-columns:
+                    190px minmax(0, 1fr);
+            }
+
+            .novel-grid {
+                grid-template-columns:
+                    repeat(3, minmax(0, 1fr));
+            }
+
+        }
+
+        @media (max-width: 700px) {
+
+            .page {
+                padding: 30px 18px 55px;
+            }
+
+            .page-title {
+                font-size: 26px;
+            }
+
+            .search-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-box {
+                position: static;
+            }
+
+            .filter-list {
+                display: grid;
+                grid-template-columns:
+                    repeat(2, minmax(0, 1fr));
+            }
+
+            .sort-box {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .sort-buttons {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .novel-grid {
+                grid-template-columns:
+                    repeat(2, minmax(0, 1fr));
+                gap: 24px 13px;
+            }
+
+        }
+
+        @media (max-width: 420px) {
+
+            .page {
+                padding-left: 12px;
+                padding-right: 12px;
+            }
+
+            .page-title {
+                font-size: 23px;
+            }
+
+            .result-info {
+                font-size: 12px;
+            }
+
+            .sort-button {
+                padding: 7px 8px;
+                font-size: 9px;
+            }
+
+            .novel-title {
+                font-size: 12px;
+            }
+
+            .novel-author {
+                font-size: 9px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+{% include 'novels/partials/header.html' %}
+
+<main class="page">
+
+    <h1 class="page-title">
+
+        Tìm kiếm
+
+        {% if query %}
+
+            <span>
+                "{{ query }}"
+            </span>
+
+        {% endif %}
+
+    </h1>
+
+    {% if query or selected_category %}
+
+        <p class="result-info">
+
+            Tìm thấy
+
+            <strong id="result-count">
+                {{ novels|length }}
+            </strong>
+
+            truyện phù hợp
+
+            {% if query %}
+
+                với từ khóa
+
+                <strong>
+                    "{{ query }}"
+                </strong>
+
+            {% endif %}
+
+            {% if selected_category %}
+
+                thuộc thể loại
+
+                <strong>
+                    {{ selected_category.name }}
+                </strong>
+
+            {% endif %}
+
+            .
+
+        </p>
+
+    {% else %}
+
+        <p class="result-info">
+
+            Chọn thể loại hoặc nhập tên truyện,
+            tác giả để tìm kiếm.
+
+        </p>
+
+    {% endif %}
+
+    <div class="search-layout">
+
+        <aside class="filter-box">
+
+            <h2 class="filter-title">
+                Lọc theo thể loại
+            </h2>
+
+            <div class="filter-list">
+
+                <a
+                    href="{% url 'search_novels' %}{% if query %}?q={{ query|urlencode }}{% endif %}"
+                    class="filter-link {% if not selected_category %}active{% endif %}"
+                >
+                    Tất cả thể loại
+                </a>
+
+                {% for category in categories %}
+
+                    <a
+                        href="{% url 'search_novels' %}?category={{ category.id }}{% if query %}&q={{ query|urlencode }}{% endif %}"
+                        class="filter-link {% if selected_category and selected_category.id == category.id %}active{% endif %}"
+                    >
+                        {{ category.name }}
+                    </a>
+
+                {% endfor %}
+
+            </div>
+
+        </aside>
+
+        <section>
+
+            <div class="results-header">
+
+                <h2 class="results-title">
+
+                    {% if selected_category %}
+
+                        {{ selected_category.name }}
+
+                    {% else %}
+
+                        Kết quả truyện
+
+                    {% endif %}
+
+                </h2>
+
+            </div>
+
+            {% if novels %}
+
+                <div class="sort-box">
+
+                    <div class="sort-label">
+                        Sắp xếp & lọc
+                    </div>
+
+                    <div class="sort-buttons">
+
+                        <button
+                            type="button"
+                            class="sort-button active"
+                            data-filter="all"
+                        >
+                            Tất cả
+                        </button>
+
+                        <button
+                            type="button"
+                            class="sort-button"
+                            data-filter="newest"
+                        >
+                            Mới cập nhật
+                        </button>
+
+                        <button
+                            type="button"
+                            class="sort-button"
+                            data-filter="chapters"
+                        >
+                            Nhiều chương
+                        </button>
+
+                        <button
+                            type="button"
+                            class="sort-button"
+                            data-filter="az"
+                        >
+                            A → Z
+                        </button>
+
+                        <button
+                            type="button"
+                            class="sort-button"
+                            data-filter="completed"
+                        >
+                            Hoàn thành
+                        </button>
+
+                    </div>
+
+                </div>
+
+                <div
+                    class="novel-grid"
+                    id="novel-grid"
+                >
+
+                    {% for novel in novels %}
+
+                        <article
+                            class="novel-card"
+                            data-title="{{ novel.title|lower }}"
+                            data-chapters="{{ novel.chapter_count }}"
+                            data-completed="{% if novel.is_completed %}1{% else %}0{% endif %}"
+                            data-created="{{ novel.created_at|date:'U' }}"
+                        >
+
+                            <a
+                                href="{% url 'novel_detail' novel.id %}"
+                            >
+
+                                <div class="poster">
+
+                                    {% if novel.cover %}
+
+                                        <img
+                                            src="{{ novel.cover.url }}"
+                                            alt="{{ novel.title }}"
+                                            loading="lazy"
+                                        >
+
+                                    {% else %}
+
+                                        <div class="poster-placeholder">
+                                            {{ novel.title }}
+                                        </div>
+
+                                    {% endif %}
+
+                                    {% if novel.is_completed %}
+
+                                        <span class="status-badge completed">
+                                            HOÀN THÀNH
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="status-badge">
+                                            ĐANG RA
+                                        </span>
+
+                                    {% endif %}
+
+                                    <div class="play-button">
+
+                                        <span class="play-icon">
+                                            ▶
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="novel-info">
+
+                                    <h3 class="novel-title">
+                                        {{ novel.title }}
+                                    </h3>
+
+                                    <p class="novel-author">
+                                        {{ novel.author }}
+                                    </p>
+
+                                    <div class="novel-meta">
+
+                                        <span class="chapter-count">
+                                            {{ novel.chapter_count }} chương
+                                        </span>
+
+                                        {% if novel.is_completed %}
+
+                                            <span class="novel-status completed">
+                                                Hoàn thành
+                                            </span>
+
+                                        {% else %}
+
+                                            <span class="novel-status">
+                                                Đang ra
+                                            </span>
+
+                                        {% endif %}
+
+                                    </div>
+
+                                </div>
+
+                            </a>
+
+                        </article>
+
+                    {% endfor %}
+
+                </div>
+
+                <div
+                    class="no-filter-result"
+                    id="no-filter-result"
+                >
+
+                    <div class="no-filter-result-icon">
+                        📚
+                    </div>
+
+                    <div class="no-filter-result-title">
+                        Không có truyện phù hợp
+                    </div>
+
+                    <div class="no-filter-result-text">
+                        Thử chọn một bộ lọc khác.
+                    </div>
+
+                </div>
+
+            {% else %}
+
+                <div class="empty">
+
+                    <div class="empty-icon">
+                        🔎
+                    </div>
+
+                    <h2>
+                        Không tìm thấy truyện
+                    </h2>
+
+                    <p>
+
+                        {% if selected_category and query %}
+
+                            Không có truyện nào có từ khóa
+                            <strong>
+                                "{{ query }}"
+                            </strong>
+                            và thuộc thể loại
+                            <strong>
+                                {{ selected_category.name }}
+                            </strong>.
+
+                        {% elif selected_category %}
+
+                            Chưa có truyện nào thuộc thể loại
+                            <strong>
+                                {{ selected_category.name }}
+                            </strong>.
+
+                        {% elif query %}
+
+                            Không có truyện nào phù hợp với
+                            <strong>
+                                "{{ query }}"
+                            </strong>.
+
+                        {% else %}
+
+                            Chưa có truyện nào.
+
+                        {% endif %}
+
+                    </p>
+
+                    <a
+                        href="{% url 'home' %}"
+                        class="home-button"
+                    >
+                        ← Về trang chủ
+                    </a>
+
+                </div>
+
+            {% endif %}
+
+        </section>
+
+    </div>
+
+</main>
+
+<footer class="footer">
+
+    © 2026 TruyenHub.
+    Nền tảng đọc truyện trực tuyến.
+
+</footer>
+
+<script>
+
+    const sortButtons =
+        document.querySelectorAll('.sort-button');
+
+    const novelGrid =
+        document.getElementById('novel-grid');
+
+    const resultCount =
+        document.getElementById('result-count');
+
+    const noFilterResult =
+        document.getElementById('no-filter-result');
+
+    if (
+        sortButtons.length &&
+        novelGrid
+    ) {
+
+        const cards = Array.from(
+            novelGrid.querySelectorAll('.novel-card')
+        );
+
+        sortButtons.forEach(button => {
+
+            button.addEventListener(
+                'click',
+                () => {
+
+                    sortButtons.forEach(item => {
+                        item.classList.remove('active');
+                    });
+
+                    button.classList.add('active');
+
+                    const filter =
+                        button.dataset.filter;
+
+                    let result = [...cards];
+
+                    if (filter === 'completed') {
+
+                        result = result.filter(card => {
+                            return (
+                                card.dataset.completed === '1'
+                            );
+                        });
+
+                    }
+
+                    if (filter === 'newest') {
+
+                        result.sort((a, b) => {
+
+                            return (
+                                Number(b.dataset.created) -
+                                Number(a.dataset.created)
+                            );
+
+                        });
+
+                    }
+
+                    if (filter === 'chapters') {
+
+                        result.sort((a, b) => {
+
+                            return (
+                                Number(b.dataset.chapters) -
+                                Number(a.dataset.chapters)
+                            );
+
+                        });
+
+                    }
+
+                    if (filter === 'az') {
+
+                        result.sort((a, b) => {
+
+                            return a.dataset.title.localeCompare(
+                                b.dataset.title,
+                                'vi'
+                            );
+
+                        });
+
+                    }
+
+                    cards.forEach(card => {
+
+                        card.classList.add(
+                            'hidden-card'
+                        );
+
+                    });
+
+                    result.forEach(card => {
+
+                        card.classList.remove(
+                            'hidden-card'
+                        );
+
+                        novelGrid.appendChild(card);
+
+                    });
+
+                    if (resultCount) {
+
+                        resultCount.textContent =
+                            result.length;
+
+                    }
+
+                    if (noFilterResult) {
+
+                        if (result.length === 0) {
+
+                            noFilterResult.classList.add(
+                                'show'
+                            );
+
+                        } else {
+
+                            noFilterResult.classList.remove(
+                                'show'
+                            );
+
+                        }
+
+                    }
+
+                }
+            );
+
+        });
+
+    }
+
+</script>
+
+</body>
+
+</html>

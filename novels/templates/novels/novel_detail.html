@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>{{ novel.title }} - TruyenHub</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #0b0b0f;
+            color: #fff;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .page {
+            width: 100%;
+            max-width: 1400px;
+            margin: auto;
+            padding: 32px 30px 80px;
+        }
+
+        .back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 22px;
+            color: #9999a3;
+            font-size: 13px;
+            transition: .2s;
+        }
+
+        .back:hover {
+            color: #fff;
+        }
+
+        .detail-hero {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #24242b;
+            border-radius: 16px;
+            background:
+                radial-gradient(
+                    circle at 82% 18%,
+                    rgba(229, 9, 20, .18),
+                    transparent 38%
+                ),
+                radial-gradient(
+                    circle at 15% 90%,
+                    rgba(229, 9, 20, .06),
+                    transparent 30%
+                ),
+                linear-gradient(
+                    135deg,
+                    #18181f,
+                    #101015 60%,
+                    #0c0c10
+                );
+            padding: 42px;
+        }
+
+        .detail-hero::after {
+            content: "";
+            position: absolute;
+            width: 420px;
+            height: 420px;
+            right: -180px;
+            bottom: -230px;
+            border-radius: 50%;
+            background: rgba(229, 9, 20, .06);
+            pointer-events: none;
+        }
+
+        .detail-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: flex-start;
+            gap: 42px;
+        }
+
+        .cover-wrapper {
+            flex: 0 0 285px;
+        }
+
+        .cover {
+            width: 285px;
+            height: 405px;
+            display: block;
+            object-fit: cover;
+            border-radius: 10px;
+            background: #1a1a20;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, .55);
+        }
+
+        .cover-empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #55555e;
+            font-size: 52px;
+        }
+
+        .info {
+            min-width: 0;
+            max-width: 760px;
+            padding-top: 5px;
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            padding: 5px 10px;
+            margin-bottom: 14px;
+            border-radius: 5px;
+            background: #e50914;
+            color: #fff;
+            font-size: 10px;
+            font-weight: 900;
+            letter-spacing: .7px;
+        }
+
+        .title {
+            margin-bottom: 10px;
+            color: #fff;
+            font-size: clamp(32px, 4vw, 46px);
+            font-weight: 900;
+            line-height: 1.12;
+            letter-spacing: -.8px;
+            overflow-wrap: anywhere;
+        }
+
+        .author {
+            margin-bottom: 18px;
+            color: #a7a7b1;
+            font-size: 15px;
+        }
+
+        .author strong {
+            color: #fff;
+        }
+
+        .categories {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+            margin-bottom: 23px;
+        }
+
+        .category {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 11px;
+            border: 1px solid #34343c;
+            border-radius: 5px;
+            background: #24242b;
+            color: #d8d8dd;
+            font-size: 11px;
+            font-weight: 700;
+            transition: .2s;
+        }
+
+        .category:hover {
+            border-color: #e50914;
+            background: #e50914;
+            color: #fff;
+        }
+
+        .description {
+            margin-bottom: 25px;
+            color: #b5b5be;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        .meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 28px;
+            margin-bottom: 23px;
+            padding: 17px 0;
+            border-top: 1px solid #292930;
+            border-bottom: 1px solid #292930;
+        }
+
+        .meta-item {
+            min-width: 90px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .meta-label {
+            margin-bottom: 2px;
+            color: #70707a;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .meta-value {
+            color: #fff;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .read-btn,
+        .chapter-btn,
+        .follow-btn {
+            min-height: 43px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 11px 18px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 800;
+            transition: .2s;
+            cursor: pointer;
+        }
+
+        .read-btn {
+            background: #e50914;
+            color: #fff;
+        }
+
+        .read-btn:hover {
+            background: #f51b26;
+            transform: translateY(-2px);
+        }
+
+        .chapter-btn {
+            background: #292930;
+            color: #fff;
+        }
+
+        .chapter-btn:hover {
+            background: #38383f;
+        }
+
+        .follow-form {
+            margin: 0;
+        }
+
+        .follow-btn {
+            border: 1px solid #393941;
+            background: transparent;
+            color: #dddde2;
+        }
+
+        .follow-btn:hover {
+            border-color: #e50914;
+            background: rgba(229, 9, 20, .1);
+            color: #fff;
+        }
+
+        .follow-btn.following {
+            border-color: #e50914;
+            background: rgba(229, 9, 20, .12);
+            color: #ff4b54;
+        }
+
+        .login-follow {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 43px;
+            padding: 11px 18px;
+            border: 1px solid #393941;
+            border-radius: 6px;
+            color: #9999a3;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .login-follow:hover {
+            border-color: #e50914;
+            color: #fff;
+        }
+
+        .chapter-section {
+            margin-top: 48px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 18px;
+        }
+
+        .section-title {
+            position: relative;
+            padding-left: 14px;
+            color: #fff;
+            font-size: 23px;
+            font-weight: 900;
+        }
+
+        .section-title::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 3px;
+            bottom: 3px;
+            width: 4px;
+            border-radius: 3px;
+            background: #e50914;
+        }
+
+        .section-title span {
+            color: #e50914;
+        }
+
+        .chapter-count {
+            flex-shrink: 0;
+            color: #777780;
+            font-size: 12px;
+        }
+
+        .chapter-list {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .chapter {
+            min-width: 0;
+            min-height: 64px;
+            display: flex;
+            align-items: center;
+            padding: 10px 16px;
+            border: 1px solid #25252c;
+            border-radius: 8px;
+            background: #15151b;
+            transition: .2s;
+        }
+
+        .chapter:hover {
+            border-color: #e50914;
+            background: #1c1c23;
+            transform: translateY(-2px);
+        }
+
+        .chapter-number {
+            width: 42px;
+            height: 42px;
+            flex: 0 0 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 14px;
+            border-radius: 6px;
+            background: #24242b;
+            color: #aaaab2;
+            font-size: 12px;
+            font-weight: 900;
+            transition: .2s;
+        }
+
+        .chapter:hover .chapter-number {
+            background: #e50914;
+            color: #fff;
+        }
+
+        .chapter-info {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .chapter-title {
+            overflow: hidden;
+            color: #eee;
+            font-size: 13px;
+            font-weight: 700;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .chapter-sub {
+            margin-top: 2px;
+            color: #666670;
+            font-size: 10px;
+        }
+
+        .chapter-arrow {
+            margin-left: 12px;
+            color: #55555f;
+            font-size: 20px;
+            transition: .2s;
+        }
+
+        .chapter:hover .chapter-arrow {
+            color: #e50914;
+            transform: translateX(3px);
+        }
+
+        .empty {
+            padding: 35px 20px;
+            border: 1px dashed #303038;
+            border-radius: 9px;
+            background: #111116;
+            color: #777780;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        .footer {
+            border-top: 1px solid #222229;
+            background: #08080b;
+            padding: 35px 30px;
+        }
+
+        .footer-container {
+            width: 100%;
+            max-width: 1400px;
+            margin: auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .footer-logo {
+            color: #fff;
+            font-size: 20px;
+            font-weight: 900;
+        }
+
+        .footer-logo span {
+            color: #e50914;
+        }
+
+        .copyright {
+            color: #5f5f68;
+            font-size: 11px;
+        }
+
+        @media (max-width: 1100px) {
+
+            .detail-hero {
+                padding: 32px;
+            }
+
+            .detail-content {
+                gap: 30px;
+            }
+
+            .cover-wrapper,
+            .cover {
+                width: 240px;
+            }
+
+            .cover {
+                height: 345px;
+            }
+
+            .title {
+                font-size: 36px;
+            }
+
+        }
+
+        @media (max-width: 900px) {
+
+            .page {
+                padding: 28px 20px 65px;
+            }
+
+            .detail-hero {
+                padding: 28px;
+            }
+
+            .detail-content {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .cover-wrapper,
+            .cover {
+                width: 225px;
+            }
+
+            .cover {
+                height: 320px;
+            }
+
+            .info {
+                width: 100%;
+                max-width: 720px;
+                text-align: center;
+            }
+
+            .categories {
+                justify-content: center;
+            }
+
+            .meta {
+                justify-content: center;
+            }
+
+            .buttons {
+                justify-content: center;
+            }
+
+        }
+
+        @media (max-width: 650px) {
+
+            .page {
+                padding: 22px 14px 50px;
+            }
+
+            .back {
+                margin-bottom: 16px;
+                font-size: 12px;
+            }
+
+            .detail-hero {
+                padding: 22px 16px 25px;
+                border-radius: 12px;
+            }
+
+            .detail-content {
+                gap: 22px;
+            }
+
+            .cover-wrapper,
+            .cover {
+                width: 190px;
+            }
+
+            .cover {
+                height: 270px;
+                border-radius: 8px;
+            }
+
+            .cover-empty {
+                font-size: 40px;
+            }
+
+            .status {
+                margin-bottom: 10px;
+                padding: 4px 8px;
+                font-size: 9px;
+            }
+
+            .title {
+                margin-bottom: 8px;
+                font-size: 28px;
+                line-height: 1.16;
+            }
+
+            .author {
+                margin-bottom: 14px;
+                font-size: 13px;
+            }
+
+            .categories {
+                gap: 6px;
+                margin-bottom: 17px;
+            }
+
+            .category {
+                padding: 5px 9px;
+                font-size: 10px;
+            }
+
+            .description {
+                margin-bottom: 19px;
+                font-size: 12px;
+                line-height: 1.7;
+            }
+
+            .meta {
+                gap: 18px;
+                margin-bottom: 18px;
+                padding: 14px 0;
+            }
+
+            .meta-item {
+                min-width: 70px;
+            }
+
+            .meta-label {
+                font-size: 9px;
+            }
+
+            .meta-value {
+                font-size: 11px;
+            }
+
+            .buttons {
+                width: 100%;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+
+            .read-btn,
+            .chapter-btn,
+            .follow-btn,
+            .login-follow {
+                width: 100%;
+                min-height: 42px;
+                padding: 10px 8px;
+                font-size: 11px;
+            }
+
+            .follow-form {
+                width: 100%;
+            }
+
+            .chapter-section {
+                margin-top: 35px;
+            }
+
+            .section-header {
+                margin-bottom: 14px;
+            }
+
+            .section-title {
+                padding-left: 11px;
+                font-size: 19px;
+            }
+
+            .section-title::before {
+                width: 3px;
+            }
+
+            .chapter-count {
+                font-size: 10px;
+            }
+
+            .chapter-list {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            .chapter {
+                min-height: 58px;
+                padding: 8px 11px;
+            }
+
+            .chapter-number {
+                width: 37px;
+                height: 37px;
+                flex-basis: 37px;
+                margin-right: 10px;
+                font-size: 11px;
+            }
+
+            .chapter-title {
+                font-size: 12px;
+            }
+
+            .chapter-sub {
+                font-size: 9px;
+            }
+
+            .chapter-arrow {
+                font-size: 17px;
+            }
+
+            .footer {
+                padding: 28px 15px;
+            }
+
+            .footer-container {
+                flex-direction: column;
+                text-align: center;
+            }
+
+        }
+
+        @media (max-width: 380px) {
+
+            .detail-hero {
+                padding: 19px 12px 22px;
+            }
+
+            .cover-wrapper,
+            .cover {
+                width: 165px;
+            }
+
+            .cover {
+                height: 235px;
+            }
+
+            .title {
+                font-size: 24px;
+            }
+
+            .description {
+                font-size: 11px;
+            }
+
+            .meta {
+                gap: 12px;
+            }
+
+            .meta-item {
+                min-width: 60px;
+            }
+
+            .meta-value {
+                font-size: 10px;
+            }
+
+            .buttons {
+                grid-template-columns: 1fr;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+{% include 'novels/partials/header.html' %}
+
+
+<main class="page">
+
+
+    <a
+        href="{% url 'home' %}"
+        class="back"
+    >
+        ← Quay lại trang chủ
+    </a>
+
+
+    <section class="detail-hero">
+
+
+        <div class="detail-content">
+
+
+            <div class="cover-wrapper">
+
+                {% if novel.cover %}
+
+                    <img
+                        src="{{ novel.cover.url }}"
+                        alt="{{ novel.title }}"
+                        class="cover"
+                    >
+
+                {% else %}
+
+                    <div class="cover cover-empty">
+                        📖
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+
+            <div class="info">
+
+
+                <div class="status">
+
+                    {% if novel.is_completed %}
+                        HOÀN THÀNH
+                    {% else %}
+                        ĐANG RA
+                    {% endif %}
+
+                </div>
+
+
+                <h1 class="title">
+                    {{ novel.title }}
+                </h1>
+
+
+                <div class="author">
+
+                    Tác giả:
+
+                    <strong>
+                        {{ novel.author }}
+                    </strong>
+
+                </div>
+
+
+                <div class="categories">
+
+                    {% for category in novel.categories.all %}
+
+                        <a
+                            href="{% url 'category_detail' category.id %}"
+                            class="category"
+                        >
+                            {{ category.name }}
+                        </a>
+
+                    {% empty %}
+
+                        <span class="category">
+                            Chưa phân loại
+                        </span>
+
+                    {% endfor %}
+
+                </div>
+
+
+                {% if novel.description %}
+
+                    <p class="description">
+                        {{ novel.description }}
+                    </p>
+
+                {% else %}
+
+                    <p class="description">
+                        Chưa có mô tả cho truyện này.
+                    </p>
+
+                {% endif %}
+
+
+                <div class="meta">
+
+
+                    <div class="meta-item">
+
+                        <span class="meta-label">
+                            Tác giả
+                        </span>
+
+                        <span class="meta-value">
+                            {{ novel.author }}
+                        </span>
+
+                    </div>
+
+
+                    <div class="meta-item">
+
+                        <span class="meta-label">
+                            Số chương
+                        </span>
+
+                        <span class="meta-value">
+                            {{ chapters|length }}
+                        </span>
+
+                    </div>
+
+
+                    <div class="meta-item">
+
+                        <span class="meta-label">
+                            Trạng thái
+                        </span>
+
+                        <span class="meta-value">
+
+                            {% if novel.is_completed %}
+                                Hoàn thành
+                            {% else %}
+                                Đang ra
+                            {% endif %}
+
+                        </span>
+
+                    </div>
+
+
+                </div>
+
+
+                <div class="buttons">
+
+
+                    {% if chapters %}
+
+                        <a
+                            href="{% url 'chapter_detail' novel.id chapters.0.chapter_number %}"
+                            class="read-btn"
+                        >
+                            ▶ Đọc từ đầu
+                        </a>
+
+                    {% endif %}
+
+
+                    <a
+                        href="#chapters"
+                        class="chapter-btn"
+                    >
+                        ☰ Danh sách chương
+                    </a>
+
+
+                    {% if user.is_authenticated %}
+
+                        <form
+                            method="post"
+                            action="{% url 'toggle_follow' novel.id %}"
+                            class="follow-form"
+                        >
+
+                            {% csrf_token %}
+
+                            {% if is_following %}
+
+                                <button
+                                    type="submit"
+                                    class="follow-btn following"
+                                >
+                                    ♥ Đang theo dõi
+                                </button>
+
+                            {% else %}
+
+                                <button
+                                    type="submit"
+                                    class="follow-btn"
+                                >
+                                    ♡ Theo dõi truyện
+                                </button>
+
+                            {% endif %}
+
+                        </form>
+
+                    {% else %}
+
+                        <a
+                            href="{% url 'login' %}?next={{ request.path }}"
+                            class="login-follow"
+                        >
+                            ♡ Đăng nhập để theo dõi
+                        </a>
+
+                    {% endif %}
+
+
+                </div>
+
+
+            </div>
+
+
+        </div>
+
+
+    </section>
+
+
+    <section
+        class="chapter-section"
+        id="chapters"
+    >
+
+
+        <div class="section-header">
+
+
+            <h2 class="section-title">
+                Danh sách <span>chương</span>
+            </h2>
+
+
+            <span class="chapter-count">
+                {{ chapters|length }} chương
+            </span>
+
+
+        </div>
+
+
+        {% if chapters %}
+
+
+            <div class="chapter-list">
+
+
+                {% for chapter in chapters %}
+
+
+                    <a
+                        href="{% url 'chapter_detail' novel.id chapter.chapter_number %}"
+                        class="chapter"
+                    >
+
+
+                        <div class="chapter-number">
+                            {{ chapter.chapter_number }}
+                        </div>
+
+
+                        <div class="chapter-info">
+
+                            <div class="chapter-title">
+                                {{ chapter.title }}
+                            </div>
+
+                            <div class="chapter-sub">
+                                Chương {{ chapter.chapter_number }}
+                            </div>
+
+                        </div>
+
+
+                        <div class="chapter-arrow">
+                            ›
+                        </div>
+
+
+                    </a>
+
+
+                {% endfor %}
+
+
+            </div>
+
+
+        {% else %}
+
+
+            <div class="empty">
+                Truyện này hiện chưa có chương nào.
+            </div>
+
+
+        {% endif %}
+
+
+    </section>
+
+
+</main>
+
+
+<footer class="footer">
+
+    <div class="footer-container">
+
+        <div class="footer-logo">
+            Truyen<span>Hub</span>
+        </div>
+
+        <div class="copyright">
+            © 2026 TruyenHub. Nền tảng đọc truyện trực tuyến.
+        </div>
+
+    </div>
+
+</footer>
+
+
+</body>
+
+</html>

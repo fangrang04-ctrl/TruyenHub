@@ -1,0 +1,70 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+
+<div style="max-width:700px;">
+
+    <h1>Xác nhận xóa truyện</h1>
+
+    <div style="
+        background:#fff;
+        border:1px solid #ddd;
+        padding:24px;
+        margin-top:20px;
+    ">
+
+        <p>
+            Bạn có chắc chắn muốn xóa truyện:
+        </p>
+
+        <h2>{{ novel.title }}</h2>
+
+        <p>
+            Thao tác này sẽ xóa:
+        </p>
+
+        <ul>
+            <li>Truyện</li>
+            <li>{{ chapter_count }} chương</li>
+            <li>Ảnh bìa</li>
+        </ul>
+
+        <p style="color:#ba2121;font-weight:bold;">
+            Hành động này không thể hoàn tác.
+        </p>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <button
+                type="submit"
+                style="
+                    background:#ba2121;
+                    color:white;
+                    border:0;
+                    padding:10px 18px;
+                    border-radius:4px;
+                    cursor:pointer;
+                "
+            >
+                🗑 Xóa hẳn truyện
+            </button>
+
+            <a
+                href="{% url 'admin:novels_novel_changelist' %}"
+                style="
+                    margin-left:10px;
+                    padding:10px 18px;
+                    display:inline-block;
+                "
+            >
+                Hủy
+            </a>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

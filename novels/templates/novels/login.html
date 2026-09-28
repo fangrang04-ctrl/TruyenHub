@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+
+<html lang="vi">
+
+<head>
+
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>Đăng nhập - TruyenHub</title>
+
+<style>
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+
+    html {
+        min-height: 100%;
+    }
+
+
+    body {
+        min-height: 100vh;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        padding: 25px;
+
+        background:
+            radial-gradient(
+                circle at 50% -10%,
+                rgba(229, 9, 20, 0.22),
+                transparent 35%
+            ),
+            radial-gradient(
+                circle at 10% 90%,
+                rgba(229, 9, 20, 0.06),
+                transparent 30%
+            ),
+            #0b0b0f;
+
+        color: #fff;
+
+        font-family:
+            Arial,
+            Helvetica,
+            sans-serif;
+    }
+
+
+    a {
+        text-decoration: none;
+        color: inherit;
+    }
+
+
+    /* ==================================================
+       BACK HOME
+    ================================================== */
+
+    .home-link {
+        position: fixed;
+
+        top: 25px;
+        left: 30px;
+
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+
+        color: #85858d;
+
+        font-size: 13px;
+        font-weight: 600;
+
+        transition:
+            color 0.2s ease,
+            transform 0.2s ease;
+    }
+
+
+    .home-link:hover {
+        color: #fff;
+
+        transform: translateX(-3px);
+    }
+
+
+    /* ==================================================
+       LOGIN BOX
+    ================================================== */
+
+    .box {
+        position: relative;
+
+        width: 420px;
+        max-width: 100%;
+
+        padding: 42px;
+
+        background:
+            linear-gradient(
+                145deg,
+                #18181f,
+                #121218
+            );
+
+        border: 1px solid #2a2a32;
+
+        border-radius: 15px;
+
+        box-shadow:
+            0 30px 90px rgba(0, 0, 0, 0.65);
+
+        overflow: hidden;
+    }
+
+
+    .box::before {
+        content: "";
+
+        position: absolute;
+
+        top: 0;
+        left: 12%;
+        right: 12%;
+
+        height: 2px;
+
+        background:
+            linear-gradient(
+                90deg,
+                transparent,
+                #e50914,
+                transparent
+            );
+
+        opacity: 0.9;
+    }
+
+
+    .box::after {
+        content: "";
+
+        position: absolute;
+
+        width: 180px;
+        height: 180px;
+
+        top: -100px;
+        right: -90px;
+
+        border-radius: 50%;
+
+        background: rgba(229, 9, 20, 0.08);
+
+        filter: blur(30px);
+
+        pointer-events: none;
+    }
+
+
+    /* ==================================================
+       LOGO
+    ================================================== */
+
+    .logo {
+        display: block;
+
+        text-align: center;
+
+        margin-bottom: 28px;
+
+        color: #fff;
+
+        font-size: 31px;
+        font-weight: 900;
+
+        letter-spacing: -1.3px;
+    }
+
+
+    .logo span {
+        color: #e50914;
+    }
+
+
+    /* ==================================================
+       TITLE
+    ================================================== */
+
+    h1 {
+        margin: 0;
+
+        text-align: center;
+
+        font-size: 26px;
+        font-weight: 900;
+
+        letter-spacing: -0.4px;
+    }
+
+
+    .subtitle {
+        margin: 9px 0 28px;
+
+        text-align: center;
+
+        color: #777780;
+
+        font-size: 13px;
+
+        line-height: 1.5;
+    }
+
+
+    /* ==================================================
+       ERROR
+    ================================================== */
+
+    .error {
+        display: flex;
+        align-items: flex-start;
+        gap: 9px;
+
+        margin-bottom: 18px;
+
+        padding: 12px 13px;
+
+        border: 1px solid #64252b;
+
+        border-radius: 7px;
+
+        background:
+            linear-gradient(
+                135deg,
+                #291418,
+                #201014
+            );
+
+        color: #ff858c;
+
+        font-size: 13px;
+
+        line-height: 1.5;
+    }
+
+
+    .error-icon {
+        flex-shrink: 0;
+
+        width: 19px;
+        height: 19px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        border-radius: 50%;
+
+        background: #e50914;
+
+        color: #fff;
+
+        font-size: 11px;
+        font-weight: 900;
+    }
+
+
+    /* ==================================================
+       FORM
+    ================================================== */
+
+    .field {
+        margin-bottom: 17px;
+    }
+
+
+    label {
+        display: block;
+
+        margin-bottom: 8px;
+
+        color: #d0d0d5;
+
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+
+    .input-wrapper {
+        position: relative;
+    }
+
+
+    input {
+        width: 100%;
+        height: 48px;
+
+        padding: 0 14px;
+
+        border: 1px solid #303039;
+
+        border-radius: 7px;
+
+        outline: none;
+
+        background: #0d0d12;
+
+        color: #fff;
+
+        font-size: 14px;
+
+        transition:
+            border-color 0.2s ease,
+            background 0.2s ease,
+            box-shadow 0.2s ease;
+    }
+
+
+    input::placeholder {
+        color: #5e5e67;
+    }
+
+
+    input:hover {
+        border-color: #3b3b45;
+    }
+
+
+    input:focus {
+        border-color: #e50914;
+
+        background: #111117;
+
+        box-shadow:
+            0 0 0 3px rgba(229, 9, 20, 0.08);
+    }
+
+
+    /* ==================================================
+       BUTTON
+    ================================================== */
+
+    .button {
+        width: 100%;
+        height: 48px;
+
+        margin-top: 5px;
+
+        border: 0;
+
+        border-radius: 7px;
+
+        background: #e50914;
+
+        color: #fff;
+
+        font-size: 14px;
+        font-weight: 900;
+
+        cursor: pointer;
+
+        box-shadow:
+            0 10px 25px rgba(229, 9, 20, 0.18);
+
+        transition:
+            background 0.2s ease,
+            transform 0.2s ease,
+            box-shadow 0.2s ease;
+    }
+
+
+    .button:hover {
+        background: #f21a25;
+
+        transform: translateY(-2px);
+
+        box-shadow:
+            0 14px 30px rgba(229, 9, 20, 0.28);
+    }
+
+
+    .button:active {
+        transform: translateY(0);
+    }
+
+
+    /* ==================================================
+       REGISTER
+    ================================================== */
+
+    .register {
+        margin-top: 25px;
+
+        padding-top: 22px;
+
+        border-top: 1px solid #292930;
+
+        text-align: center;
+
+        color: #777780;
+
+        font-size: 13px;
+    }
+
+
+    .register a {
+        color: #e50914;
+
+        font-weight: 800;
+
+        transition: color 0.2s ease;
+    }
+
+
+    .register a:hover {
+        color: #ff3039;
+    }
+
+
+    /* ==================================================
+       BACK
+    ================================================== */
+
+    .back {
+        display: block;
+
+        margin-top: 17px;
+
+        text-align: center;
+
+        color: #5f5f68;
+
+        font-size: 12px;
+
+        transition:
+            color 0.2s ease;
+    }
+
+
+    .back:hover {
+        color: #fff;
+    }
+
+
+    /* ==================================================
+       MOBILE
+    ================================================== */
+
+    @media (max-width: 550px) {
+
+        body {
+            padding: 20px;
+        }
+
+
+        .home-link {
+            top: 17px;
+            left: 20px;
+        }
+
+
+        .box {
+            padding: 34px 25px;
+
+            border-radius: 12px;
+        }
+
+
+        .logo {
+            font-size: 28px;
+        }
+
+
+        h1 {
+            font-size: 23px;
+        }
+
+    }
+
+
+    @media (max-width: 380px) {
+
+        body {
+            padding: 15px;
+        }
+
+
+        .box {
+            padding: 30px 20px;
+        }
+
+
+        .home-link {
+            display: none;
+        }
+
+    }
+
+</style>
+
+</head>
+
+<body>
+
+<!-- ==================================================
+     BACK HOME
+================================================== -->
+
+<a
+href="{% url 'home' %}"
+class="home-link"
+
+>
+
+← Trang chủ
+
+
+</a>
+
+<!-- ==================================================
+     LOGIN BOX
+================================================== -->
+
+<div class="box">
+
+<a
+    href="{% url 'home' %}"
+    class="logo"
+>
+    Truyen<span>Hub</span>
+</a>
+
+
+<h1>
+    Đăng nhập
+</h1>
+
+
+<div class="subtitle">
+    Đăng nhập để tiếp tục đọc truyện trên TruyenHub
+</div>
+
+
+
+{% if error %}
+
+    <div class="error">
+
+        <span class="error-icon">
+            !
+        </span>
+
+        <span>
+            {{ error }}
+        </span>
+
+    </div>
+
+{% endif %}
+
+
+
+<form method="post">
+
+    {% csrf_token %}
+
+
+    <input
+        type="hidden"
+        name="next"
+        value="{{ next }}"
+    >
+
+
+
+    <!-- USERNAME -->
+
+    <div class="field">
+
+        <label for="username">
+            Tên đăng nhập
+        </label>
+
+
+        <div class="input-wrapper">
+
+            <input
+                id="username"
+                type="text"
+                name="username"
+                placeholder="Nhập tên đăng nhập"
+                autocomplete="username"
+                required
+                autofocus
+            >
+
+        </div>
+
+    </div>
+
+
+
+    <!-- PASSWORD -->
+
+    <div class="field">
+
+        <label for="password">
+            Mật khẩu
+        </label>
+
+
+        <div class="input-wrapper">
+
+            <input
+                id="password"
+                type="password"
+                name="password"
+                placeholder="Nhập mật khẩu"
+                autocomplete="current-password"
+                required
+            >
+
+        </div>
+
+    </div>
+
+
+
+    <button
+        type="submit"
+        class="button"
+    >
+        Đăng nhập
+    </button>
+
+
+</form>
+
+
+
+<!-- REGISTER -->
+
+<div class="register">
+
+    Chưa có tài khoản?
+
+    <a href="{% url 'register' %}">
+        Đăng ký ngay
+    </a>
+
+</div>
+
+
+
+<!-- BACK -->
+
+<a
+    href="{% url 'home' %}"
+    class="back"
+>
+</a>
+
+</div>
+
+</body>
+
+</html>

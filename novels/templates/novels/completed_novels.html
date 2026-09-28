@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Truyện hoàn thành - TruyenHub</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #0b0b0f;
+            color: #ffffff;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .page {
+            width: 90%;
+            max-width: 1450px;
+
+            margin: auto;
+
+            padding: 45px 0 70px;
+        }
+
+        .page-top {
+            margin-bottom: 30px;
+        }
+
+        .page-title {
+            margin: 0;
+
+            font-size: 32px;
+            font-weight: 800;
+        }
+
+        .page-title span {
+            color: #e50914;
+        }
+
+        .page-description {
+            margin-top: 9px;
+
+            color: #85858e;
+
+            font-size: 14px;
+        }
+
+        .novel-grid {
+            display: grid;
+
+            grid-template-columns:
+                repeat(6, minmax(0, 1fr));
+
+            gap: 24px;
+        }
+
+        .poster {
+            position: relative;
+
+            aspect-ratio: 2 / 2.85;
+
+            overflow: hidden;
+
+            background: #15151b;
+
+            border-radius: 9px;
+
+            transition: 0.25s;
+        }
+
+        .novel-card:hover .poster {
+            transform: translateY(-6px);
+        }
+
+        .poster img {
+            width: 100%;
+            height: 100%;
+
+            object-fit: cover;
+
+            display: block;
+
+            transition: 0.35s;
+        }
+
+        .novel-card:hover img {
+            transform: scale(1.05);
+        }
+
+        .placeholder {
+            width: 100%;
+            height: 100%;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 20px;
+
+            text-align: center;
+
+            color: #666670;
+        }
+
+        .badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+
+            z-index: 2;
+
+            padding: 5px 8px;
+
+            border-radius: 5px;
+
+            background: #e50914;
+
+            color: white;
+
+            font-size: 10px;
+            font-weight: 800;
+        }
+
+        .overlay {
+            position: absolute;
+            inset: 0;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            background: rgba(0, 0, 0, 0.58);
+
+            opacity: 0;
+
+            transition: 0.25s;
+        }
+
+        .novel-card:hover .overlay {
+            opacity: 1;
+        }
+
+        .play {
+            width: 48px;
+            height: 48px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 50%;
+
+            background: #e50914;
+
+            color: white;
+            font-size: 18px;
+        }
+
+        .info {
+            padding-top: 12px;
+        }
+
+        .title {
+            margin: 0;
+
+            font-size: 15px;
+            line-height: 1.4;
+            font-weight: 700;
+
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+
+            overflow: hidden;
+        }
+
+        .novel-card:hover .title {
+            color: #e50914;
+        }
+
+        .author {
+            margin-top: 6px;
+
+            color: #777780;
+            font-size: 12px;
+        }
+
+        .categories {
+            display: flex;
+            gap: 5px;
+
+            margin-top: 8px;
+        }
+
+        .category {
+            padding: 4px 7px;
+
+            background: #19191f;
+            border-radius: 4px;
+
+            color: #92929a;
+
+            font-size: 10px;
+        }
+
+        .empty {
+            min-height: 300px;
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+
+            border: 1px dashed #292930;
+            border-radius: 12px;
+
+            color: #777780;
+        }
+
+        .empty-icon {
+            margin-bottom: 15px;
+            font-size: 45px;
+        }
+
+        .empty-title {
+            color: #b5b5bd;
+            font-size: 17px;
+            font-weight: 700;
+        }
+
+        .empty-text {
+            margin-top: 7px;
+            font-size: 13px;
+        }
+
+        footer {
+            padding: 35px 5%;
+
+            border-top: 1px solid #202027;
+
+            text-align: center;
+
+            color: #66666f;
+            font-size: 12px;
+        }
+
+        @media (max-width: 1200px) {
+
+            .novel-grid {
+                grid-template-columns:
+                    repeat(5, minmax(0, 1fr));
+            }
+
+        }
+
+        @media (max-width: 950px) {
+
+            .novel-grid {
+                grid-template-columns:
+                    repeat(4, minmax(0, 1fr));
+            }
+
+        }
+
+        @media (max-width: 650px) {
+
+            .page {
+                width: 92%;
+                padding-top: 30px;
+            }
+
+            .page-title {
+                font-size: 27px;
+            }
+
+            .novel-grid {
+                grid-template-columns:
+                    repeat(3, minmax(0, 1fr));
+
+                gap: 16px;
+            }
+
+            .title {
+                font-size: 13px;
+            }
+
+        }
+
+        @media (max-width: 430px) {
+
+            .novel-grid {
+                grid-template-columns:
+                    repeat(2, minmax(0, 1fr));
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+{% include 'novels/partials/header.html' %}
+
+
+<main class="page">
+
+    <div class="page-top">
+
+        <h1 class="page-title">
+            Truyện <span>hoàn thành</span>
+        </h1>
+
+        <div class="page-description">
+            Những bộ truyện đã hoàn tất trên TruyenHub
+        </div>
+
+    </div>
+
+
+    {% if novels %}
+
+        <div class="novel-grid">
+
+            {% for novel in novels %}
+
+                <a
+                    href="{% url 'novel_detail' novel.id %}"
+                    class="novel-card"
+                >
+
+                    <div class="poster">
+
+                        <div class="badge">
+                            HOÀN THÀNH
+                        </div>
+
+                        {% if novel.cover %}
+
+                            <img
+                                src="{{ novel.cover.url }}"
+                                alt="{{ novel.title }}"
+                            >
+
+                        {% else %}
+
+                            <div class="placeholder">
+                                {{ novel.title }}
+                            </div>
+
+                        {% endif %}
+
+                        <div class="overlay">
+
+                            <div class="play">
+                                ▶
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="info">
+
+                        <h2 class="title">
+                            {{ novel.title }}
+                        </h2>
+
+                        <div class="author">
+                            {{ novel.author }}
+                        </div>
+
+                        <div class="categories">
+
+                            {% for category in novel.categories.all|slice:":2" %}
+
+                                <span class="category">
+                                    {{ category.name }}
+                                </span>
+
+                            {% endfor %}
+
+                        </div>
+
+                    </div>
+
+                </a>
+
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <div class="empty">
+
+            <div class="empty-icon">
+                📚
+            </div>
+
+            <div class="empty-title">
+                Chưa có truyện hoàn thành
+            </div>
+
+            <div class="empty-text">
+                Các truyện hoàn thành sẽ xuất hiện ở đây.
+            </div>
+
+        </div>
+
+    {% endif %}
+
+</main>
+
+
+<footer>
+    © 2026 TruyenHub · Nền tảng đọc truyện trực tuyến
+</footer>
+
+</body>
+</html>

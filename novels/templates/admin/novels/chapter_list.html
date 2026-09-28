@@ -1,0 +1,303 @@
+{% extends "admin/base_site.html" %}
+
+{% block extrastyle %}
+
+<style>
+
+    .chapter-page {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .chapter-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 25px;
+    }
+
+    .chapter-header h1 {
+        margin: 0;
+    }
+
+    .novel-info {
+        color: #777;
+        margin-top: 6px;
+    }
+
+    .chapter-actions-top {
+        display: flex;
+        gap: 10px;
+    }
+
+    .chapter-main-button {
+        background: #417690 !important;
+        color: white !important;
+        padding: 11px 18px;
+        border-radius: 5px;
+        font-weight: 600;
+    }
+
+    .chapter-back-button {
+        padding: 11px 18px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        background: white;
+    }
+
+    .chapter-table-wrapper {
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .chapter-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .chapter-table th {
+        background: #f5f5f5;
+        padding: 15px;
+        text-align: left;
+        font-size: 13px;
+        color: #555;
+    }
+
+    .chapter-table td {
+        padding: 15px;
+        border-top: 1px solid #eee;
+        vertical-align: middle;
+    }
+
+    .chapter-number {
+        width: 80px;
+        font-weight: 700;
+        color: #417690;
+    }
+
+    .chapter-title {
+        font-weight: 600;
+        color: #333;
+    }
+
+    .chapter-status {
+        padding: 5px 9px;
+        border-radius: 4px;
+        background: #eee;
+        font-size: 12px;
+    }
+
+    .chapter-buttons {
+        display: flex;
+        gap: 7px;
+    }
+
+    .edit-button,
+    .delete-button {
+        padding: 7px 11px;
+        border-radius: 4px;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .edit-button {
+        background: #417690;
+        color: white;
+    }
+
+    .delete-button {
+        background: #ba2121;
+        color: white;
+    }
+
+    .empty-chapters {
+        padding: 60px;
+        text-align: center;
+        color: #777;
+    }
+
+</style>
+
+{% endblock %}
+
+
+{% block content %}
+
+<div class="chapter-page">
+
+    <div class="chapter-header">
+
+        <div>
+
+            <h1>
+                Quản lý chương
+            </h1>
+
+            <div class="novel-info">
+                {{ novel.title }}
+                ·
+                {{ chapters|length }} chương
+            </div>
+
+        </div>
+
+
+        <div class="chapter-actions-top">
+
+            <a
+                href="{% url 'admin:novels_novel_changelist' %}"
+                class="chapter-back-button"
+            >
+                ← Danh sách truyện
+            </a>
+
+            <a
+                href="{% url 'admin:novels_novel_add_chapter' novel.pk %}"
+                class="chapter-main-button"
+            >
+                ＋ Thêm chương
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <div class="chapter-table-wrapper">
+
+        {% if chapters %}
+
+            <table class="chapter-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Chương
+                        </th>
+
+                        <th>
+                            Tên chương
+                        </th>
+
+                        <th>
+                            Trạng thái
+                        </th>
+
+                        <th>
+                            Ngày cập nhật
+                        </th>
+
+                        <th>
+                            Thao tác
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for chapter in chapters %}
+
+                        <tr>
+
+                            <td class="chapter-number">
+
+                                Chương
+                                {{ chapter.chapter_number }}
+
+                            </td>
+
+
+                            <td class="chapter-title">
+
+                                {{ chapter.title }}
+
+                            </td>
+
+
+                            <td>
+
+                                <span class="chapter-status">
+
+                                    {{ chapter.get_status_display }}
+
+                                </span>
+
+                            </td>
+
+
+                            <td>
+
+                                {{ chapter.updated_at|date:"d/m/Y H:i" }}
+
+                            </td>
+
+
+                            <td>
+
+                                <div class="chapter-buttons">
+
+                                    <a
+                                        href="{% url 'admin:novels_novel_edit_chapter' novel.pk chapter.pk %}"
+                                        class="edit-button"
+                                    >
+                                        ✏ Sửa
+                                    </a>
+
+                                    <a
+                                        href="{% url 'admin:novels_novel_delete_chapter' novel.pk chapter.pk %}"
+                                        class="delete-button"
+                                    >
+                                        🗑 Xóa
+                                    </a>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        {% else %}
+
+            <div class="empty-chapters">
+
+                <h2>
+                    Chưa có chương nào
+                </h2>
+
+                <p>
+                    Hãy tạo chương đầu tiên cho truyện này.
+                </p>
+
+                <br>
+
+                <a
+                    href="{% url 'admin:novels_novel_add_chapter' novel.pk %}"
+                    class="chapter-main-button"
+                >
+                    ＋ Thêm chương đầu tiên
+                </a>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}
